@@ -339,6 +339,10 @@ def create_bcv_view(page):
             padding=15,
             bgcolor="#fff8dc",
             border_radius=10,
-            margin=ft.margin.only(top=10)
+            margin=ft.margin.only(top=10),
         )
-    ], spacing=15)
+    ], 
+    spacing=15,
+    scroll=ft.ScrollMode.AUTO,
+    expand=True
+    )
