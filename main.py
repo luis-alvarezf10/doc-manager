@@ -3,8 +3,9 @@ import os
 from src.app.ui.views.home import HomeView
 
 def main(page: ft.Page):
-    page.title = "Lexis Nova"
+    page.title = "Axiology Document Manager"
     page.window_full_screen = True
+    page.theme_mode = ft.ThemeMode.SYSTEM
     
     def route_change(route):
         page.views.clear()

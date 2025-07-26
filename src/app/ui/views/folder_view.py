@@ -165,8 +165,6 @@ def folder_view(page: ft.Page, back_callback=None, chat_instance=None):
         except Exception as ex:
             update_status(f"Error al escanear carpetas: {ex}", "red")
 
-    app_bar = custom_app_bar(text="Explorador PLAF System", on_click=lambda e: back_callback() if back_callback else None)
-
     refresh_btn = ft.ElevatedButton("Actualizar", bgcolor="blue", color="white", icon=ft.Icons.REFRESH, on_click=lambda e: scan_folders())
     open_system_btn = ft.ElevatedButton("Abrir PLAF System", bgcolor="green", color="white", icon=ft.Icons.FOLDER_OPEN, on_click=lambda e: open_path(plaf_system_path))
     select_btn = ft.ElevatedButton("Seleccionar Archivos", bgcolor="purple", color="white", icon=ft.Icons.CHECK_BOX, on_click=toggle_selection_mode)
@@ -176,7 +174,6 @@ def folder_view(page: ft.Page, back_callback=None, chat_instance=None):
 
     return ft.Column(
         controls=[
-            app_bar,
             ft.Column([
                 ft.Text("Explorador de Archivos PLAF System", size=24, weight=ft.FontWeight.BOLD),
                 path_text,

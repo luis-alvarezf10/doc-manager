@@ -5,13 +5,15 @@ from src.app.ui.views.functions import functions_page
 from src.app.ui.views.folder_view import folder_view
 from src.app.ui.views.bcv_view import create_bcv_view
 from src.app.ui.views.reports_view import create_reports_view
-from src.app.utils.colors import dark_grey
+from src.app.utils.colors import grey
 
 class HomeView(ft.View):
     def __init__(self, page: ft.Page):
         super().__init__()
         self.route = "/home"
         self.page = page
+        self.padding = 0
+        self.margin = 0
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.last_selected_index = 0
@@ -36,36 +38,74 @@ class HomeView(ft.View):
             4: lambda: self.get_or_create("reports_view", lambda: create_reports_view(self.page)),
         }
 
+        self.is_dark = self.page.platform_brightness == ft.Brightness.DARK
+        
+        self.dark_mode_switch = ft.Switch(on_change=self.toggle_dark_mode, value=self.is_dark)
+        
         self.navigation_menu = ft.NavigationRail(
+            bgcolor= "#111418",
             selected_index=0,
+            selected_label_text_style=ft.TextStyle(color="white", weight=ft.FontWeight.BOLD, size=18),
+            unselected_label_text_style=ft.TextStyle(color="gray", size=18),
             label_type=ft.NavigationRailLabelType.ALL,
-            min_width=100,
-            min_extended_width=200,
-            leading=ft.Column([
-                ft.IconButton(
-                    ft.Icons.DEHAZE,
-                    icon_color=dark_grey,
-                    on_click=lambda e: (
-                        setattr(self.navigation_menu, 'extended', not self.navigation_menu.extended),
-                        self.page.update()
-                    )
-                ),
-                ft.Text("PLAF", size=25, weight=ft.FontWeight.BOLD, color=dark_grey)
-            ]),
-            group_alignment=-0.9,
+            width=200,
+            extended= True,
+            group_alignment=-1.0,
+            leading= ft.Column(
+                controls=[
+                    ft.Image(
+                        src="assets/axiology.png",  
+                        width=40,
+                        height=40,
+                        fit=ft.ImageFit.CONTAIN
+                    ),
+                    ft.Text("Axiology", size=25, weight=ft.FontWeight.BOLD, color="white"),
+                    ft.Text("Versión 1.0", size=14, color= grey),
+                    ft.Text("Desarrollado por Luis Álvarez", size=14, color= grey),
+                    ft.Container(height=40),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                alignment=ft.alignment.center
+            ),
             destinations=[
-                *[
-                    ft.NavigationRailDestination(icon=icon, selected_icon=selected, label=label)
-                    for icon, selected, label in [
-                        (ft.Icons.LIBRARY_BOOKS_OUTLINED, ft.Icons.LIBRARY_BOOKS, "Documentos"),
-                        (ft.Icons.FOLDER_OUTLINED, ft.Icons.FOLDER, "Carpeta"),
-                        (ft.Icons.CHAT_OUTLINED, ft.Icons.CHAT, "Chat LAN"),
-                        (ft.Icons.MONETIZATION_ON, ft.Icons.MONETIZATION_ON, "Cambio BCV"),
-                        (ft.Icons.FEEDBACK_OUTLINED, ft.Icons.FEEDBACK, "Reportes"),
-                    ]
-                ]
+                ft.NavigationRailDestination(
+                    icon= ft.Icon(ft.Icons.LIBRARY_BOOKS_OUTLINED, color="white"),
+                    selected_icon= ft.Icons.LIBRARY_BOOKS,
+                    label= "Funciones"
+                ),
+                ft.NavigationRailDestination(
+                    icon=ft.Icon(ft.Icons.FOLDER_OUTLINED, color="white"),
+                    selected_icon=ft.Icons.FOLDER,
+                    label="Carpeta",
+                ),
+                ft.NavigationRailDestination(
+                    icon=ft.Icon(ft.Icons.CHAT_OUTLINED, color="white"),
+                    selected_icon=ft.Icons.CHAT,
+                    label="Chat LAN",
+                ),
+                ft.NavigationRailDestination(
+                    icon=ft.Icon(ft.Icons.MONETIZATION_ON, color="white"),
+                    selected_icon=ft.Icons.MONETIZATION_ON,
+                    label="Cambio BCV",
+                ),
+                ft.NavigationRailDestination(
+                    icon=ft.Icon(ft.Icons.FEEDBACK_OUTLINED, color="white"),
+                    selected_icon=ft.Icons.FEEDBACK,
+                    label="Reportes",
+                ),
             ],
-            on_change=self.on_navigation_change
+            # ...existing code...
+            trailing= ft.Column(
+                controls = [
+                    ft.Container(height=120),
+                    self.dark_mode_switch,
+                    ft.Text("Modo Oscuro", size=14, color="white"),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                alignment=ft.alignment.center
+            ),
+            
+            on_change=self.on_navigation_change,
         )
 
         self.controls = [
@@ -73,10 +113,21 @@ class HomeView(ft.View):
                 self.navigation_menu,
                 ft.VerticalDivider(width=1),
                 self.content_area
-            ], expand=True)
+            ], 
+            expand=True,
+            tight=True,
+            spacing=0
+            )
         ]
+        
+    def toggle_dark_mode(self, e):
+        if self.dark_mode_switch.value:
+            self.page.theme_mode = ft.ThemeMode.DARK
+        else:
+            self.page.theme_mode = ft.ThemeMode.LIGHT
 
-    # 🧠 Reutiliza o crea y guarda la vista si no existe
+        self.page.update()
+
     def get_or_create(self, attr_name, creator):
         if not hasattr(self, attr_name) or getattr(self, attr_name) is None:
             setattr(self, attr_name, creator())
