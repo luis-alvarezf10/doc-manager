@@ -1,5 +1,5 @@
 import flet as ft
-from src.app.utils.colors import white, middle_blue
+from src.utils.colors import white, middle_blue
 
 def action_button(*, text: str, on_click) -> ft.ElevatedButton:
     return ft.ElevatedButton(

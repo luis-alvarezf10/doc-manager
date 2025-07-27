@@ -5,7 +5,7 @@ from src.app.ui.views.functions import functions_page
 from src.app.ui.views.folder_view import folder_view
 from src.app.ui.views.bcv_view import create_bcv_view
 from src.app.ui.views.reports_view import create_reports_view
-from src.app.utils.colors import grey
+from src.utils.colors import grey
 
 class HomeView(ft.View):
     def __init__(self, page: ft.Page):

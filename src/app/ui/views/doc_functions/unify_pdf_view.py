@@ -1,5 +1,5 @@
 import flet as ft
-from src.app.utils.colors import *
+from src.utils.colors import *
 from src.app.ui.widgets.custom_app_bar import custom_app_bar
 from PyPDF2 import PdfMerger
 import os

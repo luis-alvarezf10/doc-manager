@@ -1,6 +1,6 @@
 import flet as ft
 
-from src.app.utils.colors import grey, gradient_color
+from src.utils.colors import grey, gradient_color
 from src.app.ui.widgets.gradient_text import gradient_text
 from src.app.ui.widgets.action_button import action_button
 from src.app.ui.views.document_generation import document_generation_view

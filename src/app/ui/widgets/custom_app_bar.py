@@ -1,5 +1,5 @@
 import flet as ft
-from src.app.utils.colors import *
+from src.utils.colors import *
 
 def custom_app_bar(*, text, on_click) -> ft.Container:
     return ft.Container(

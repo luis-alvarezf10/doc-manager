@@ -12,7 +12,7 @@ from pypdf import PdfReader, PdfWriter
 from PIL import Image
 import fitz  # PyMuPDF
 
-from src.app.utils.colors import *
+from src.utils.colors import *
 from src.app.ui.widgets.custom_app_bar import custom_app_bar
 
 def compress_view(page: ft.Page, back_callback=None):

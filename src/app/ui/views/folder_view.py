@@ -1,6 +1,6 @@
 import flet as ft
 import os
-from src.app.utils.colors import *
+from src.utils.colors import *
 from src.app.ui.widgets.custom_app_bar import custom_app_bar
 
 def folder_view(page: ft.Page, back_callback=None, chat_instance=None):
