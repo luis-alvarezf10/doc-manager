@@ -7,7 +7,7 @@ from src.utils.colors import dark_grey, gradient_color
 from src.app.ui.widgets.gradient_button import gradient_button
 from src.app.ui.widgets.input_form import create_input, input_list
 from src.app.ui.widgets.info_selected_mode import info_text
-
+from src.app.ui.widgets.show_snackbar import show_snackbar
 
 def compraventa_contract_view(page: ft.Page):
     vendedor_fields = []
@@ -26,7 +26,7 @@ def compraventa_contract_view(page: ft.Page):
     )
     info = ft.Column(
         controls=[
-            ft.Text("Generador de Contrato de Compraventa", size=20,text_align=ft.TextAlign.CENTER, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),  
+            ft.Text("Generador de Contrato de Compraventa", size=25,text_align=ft.TextAlign.CENTER, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold", ),  
             info_text(text="1. Completa los campos para generar un contrato de compraventa."),  
             info_text(text="2. Asegúrate de ingresar todos los datos requeridos."),
             info_text(text="3. Selecciona la fecha del contrato."),
@@ -53,10 +53,9 @@ def compraventa_contract_view(page: ft.Page):
                             size=16, 
                             weight="bold",
                             ),
+                            shape=ft.RoundedRectangleBorder(radius=10),
                         )
     )
-    
-    status_text = ft.Text("Esperando acción...", size=15, color=dark_grey)
 
 
     def crear_seccion(titulo, campos, lista_destino):
@@ -99,7 +98,7 @@ def compraventa_contract_view(page: ft.Page):
     ]
 
     inmueble_campos = [
-        "Razón", "Ubicación", "Domicilio (Ciudad)","Domicilio (Parroquia)", "Domicilio (Municipio)", "Domicilio (Estado)",
+        "Tipo de Inmueble", "Ubicación", "Domicilio (Ciudad)","Domicilio (Parroquia)", "Domicilio (Municipio)", "Domicilio (Estado)",
         "Código catastral", "Superficie (m²)",
         "Límite Norte", "Límite Sur", "Límite Este", "Límite Oeste",
         "Precio", "Número de cheque", "Cuenta a depositar", "Banco"
@@ -155,11 +154,10 @@ def compraventa_contract_view(page: ft.Page):
                 input_filename=input_filename.value 
             )
 
-            status_text.value = f"✅ Contrato generado exitosamente!\n{ruta_contrato}",
-            status_text.color = ft.Colors.GREEN_700
+            page.open(show_snackbar(content=f"Contrato generado exitosamente!\n{ruta_contrato}", type="sucess"))
+
         except Exception as ex:
-            status_text.value = f"❌ Error al generar contrato: {str(ex)}",
-            status_text.color = ft.Colors.RED_700
+            page.open(show_snackbar(content=f"Error al generar contrato: {str(ex)}", type = "error"))
         page.update()
 
     return ft.Column(
@@ -178,7 +176,6 @@ def compraventa_contract_view(page: ft.Page):
                     gradient= gradient_color,
                     on_click= generar_contrato,
                 ),
-                status_text,
                 ft.Container(height=150),
             ], 
             spacing=15, 

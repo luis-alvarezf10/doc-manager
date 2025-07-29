@@ -1,6 +1,6 @@
 import flet as ft
 from docx import Document
-from docx.shared import Pt, Cm
+from docx.shared import Pt, Cm, Inches
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_UNDERLINE
 import os
 from datetime import datetime
@@ -68,12 +68,14 @@ def generate_buy_and_sell_doc(vendedor_data, comprador_data, inmueble_data, ofic
         
         
         section = doc.sections[0]  # Acceder a la primera sección (normalmente hay solo una)
-
+        section.page_width = Inches(8.5)    
+        section.page_height = Inches(14)
+        
         # Establecer márgenes (en pulgadas)
-        section.left_margin = Cm(3)    # Margen izquierdo de 1 pulgada
-        section.right_margin = Cm(3)   # Margen derecho de 1 pulgada
-        section.top_margin = Cm(3)     # Margen superior de 1 pulgada
-        section.bottom_margin = Cm(2.5)
+        section.left_margin = Cm(3)    
+        section.right_margin = Cm(3)  
+        section.top_margin = Cm(3)    
+        section.bottom_margin = Cm(1.5)
         
         impre = doc.add_paragraph()
         runs = [
@@ -110,7 +112,7 @@ def generate_buy_and_sell_doc(vendedor_data, comprador_data, inmueble_data, ofic
         add_formatted_text(intro_p, f"Municipio {comprador_data['Domicilio (Municipio)']} ", bold=True)
         add_formatted_text(intro_p, f"del estado {comprador_data['Domicilio (Estado)']}, ")
         add_formatted_text(intro_p, "un (01) bien inmueble de mi legítima propiedad, constituido por ")
-        add_formatted_text(intro_p, f"un(a) (01) {inmueble_data['Razón'].lower()} ubicado en {inmueble_data['Ubicación'].lower()}", underline=True)
+        add_formatted_text(intro_p, f"un(a) (01) {inmueble_data['Tipo de Inmueble'].lower()} ubicado en {inmueble_data['Ubicación'].lower()}", underline=True)
         add_formatted_text(intro_p, f", de la ciudad de {inmueble_data['Domicilio (Ciudad)']}, Parroquia {inmueble_data['Domicilio (Parroquia)']} Jurisdicción del Municipio {inmueble_data['Domicilio (Municipio)']} del Estado {inmueble_data['Domicilio (Estado)']}", underline=True)
         add_formatted_text(intro_p, f", distinguido con el ")
         add_formatted_text(intro_p, f"CÓDIGO CATASTRAL: {inmueble_data['Código catastral']},", bold=True, underline=True)
@@ -141,28 +143,29 @@ def generate_buy_and_sell_doc(vendedor_data, comprador_data, inmueble_data, ofic
         intro_p.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
         intro_p.paragraph_format.first_line_indent = Pt(28)
         # Guardar documento
-        desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-        plaf_system_path = os.path.join(desktop_path, "PLAF_system")
-        output_dir = os.path.join(plaf_system_path, "Contratos_Generados")
-        os.makedirs(output_dir, exist_ok=True)
+        documents_path = os.path.join(os.path.expanduser("~"), "Documents")
+        manager_path = os.path.join(documents_path, "Axiology Document Manager")
+        contracts_path = os.path.join(manager_path, "Contratos Generados")
+        sales_path = os.path.join(contracts_path, "Contratos de Compra Venta")
+        os.makedirs(sales_path, exist_ok=True)
         
         
         if input_filename == "":
             filename =  f"CONTRATO DE COMPRAVENTA DE PROPIEDAD {vendedor_data['Nombre'].upper()} {comprador_data['Nombre'].upper()}.docx"
         else:
-            filename = f"{input_filename}.docx"
-        output_path = os.path.join(output_dir, filename)
-        doc.save(output_path)
+            filename = f"{input_filename.upper()}.docx"
+            
+        full_path = os.path.join(sales_path, filename)
+        doc.save(full_path)
 
         # Notificación de éxito
         if page:
             page.update()
 
-        return output_path
+        return full_path
 
     except Exception as ex:
-        error_msg = f"❌ Error al generar el contrato: {str(ex)}"
-        print(error_msg)
+        # notificacion de fallo
         if page:
             page.update()
         raise

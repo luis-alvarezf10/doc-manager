@@ -12,5 +12,8 @@ def action_button(*, text: str, on_click) -> ft.ElevatedButton:
         height=50,
         bgcolor=middle_blue,
         color=white,
-        on_click=on_click
+        on_click=on_click, 
+        style=ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=10),
+        )
     )

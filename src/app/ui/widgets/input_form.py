@@ -14,7 +14,7 @@ def create_input(titulo: None, label, lista):
     if label_lower in ["estado civil", "razón", "trimestre referido"]:
         options_dict = {
             "estado civil": ["Soltero/a", "Casado/a", "Divorciado/a", "Viudo/a"],
-            "razón": ["Edificio", "Casa", "Apartamento", "Terreno", "Local Comercial"],
+            "Tipo de Inmueble": ["Edificio", "Casa", "Apartamento", "Terreno", "Local Comercial"],
             "trimestre referido": ["Primer", "Segundo", "Tercer", "Cuarto"]
         }
 

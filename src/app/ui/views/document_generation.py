@@ -54,6 +54,9 @@ def document_generation_view(page: ft.Page, back_callback: callable = None) -> f
                 ), 
                 bgcolor=middle_blue,
                 color=ft.Colors.WHITE,
+                style=ft.ButtonStyle(
+                    shape=ft.RoundedRectangleBorder(radius=10),
+                )
             ) for text, content in buttons
         ],
         alignment=ft.MainAxisAlignment.CENTER,

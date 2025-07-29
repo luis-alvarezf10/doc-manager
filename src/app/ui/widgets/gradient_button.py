@@ -9,7 +9,7 @@ def gradient_button(*, text:str, width:int = 350, height:int = 48, gradient:list
             end=ft.alignment.center_right,
             colors=gradient,
         ),
-        border_radius=ft.border_radius.all(22),
+        border_radius=ft.border_radius.all(10),
         shadow=ft.BoxShadow(
             spread_radius=1,
             blur_radius=10,
@@ -30,7 +30,8 @@ def gradient_button(*, text:str, width:int = 350, height:int = 48, gradient:list
                 overlay_color=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
                 shadow_color=ft.Colors.TRANSPARENT,
                 surface_tint_color=ft.Colors.TRANSPARENT,
+                shape=ft.RoundedRectangleBorder(radius=10),
             ),
-            on_click= on_click
+            on_click= on_click,
         )
     )
