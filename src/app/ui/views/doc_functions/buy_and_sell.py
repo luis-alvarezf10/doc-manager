@@ -3,60 +3,88 @@ from datetime import datetime
 from src.documents.buy_and_sell_doc import generate_buy_and_sell_doc
 from src.utils.datestr import fecha_a_formato_legal
 
+from src.utils.colors import dark_grey, gradient_color
+from src.app.ui.widgets.gradient_button import gradient_button
+from src.app.ui.widgets.input_form import create_input, input_list
+from src.app.ui.widgets.info_selected_mode import info_text
+
+
 def compraventa_contract_view(page: ft.Page):
     vendedor_fields = []
     comprador_fields = []
     inmueble_fields = []
     oficina_fields = []
-    nombre_archivo = ft.TextField(label="Nombre del archivo", filled=True, expand=True)
-    # Texto para mostrar estado
-    status_text = ft.Text("")
+    input_filename = ft.TextField(
+        label="Nombre del archivo", 
+        filled=True, 
+        expand=True, 
+        border_radius=8,                           
+        border_width=0,      
+        border_color="transparent", 
+        focused_border_width=0,  
+        text_size=16,     
+    )
+    info = ft.Column(
+        controls=[
+            ft.Text("Generador de Contrato de Compraventa", size=20,text_align=ft.TextAlign.CENTER, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),  
+            info_text(text="1. Completa los campos para generar un contrato de compraventa."),  
+            info_text(text="2. Asegúrate de ingresar todos los datos requeridos."),
+            info_text(text="3. Selecciona la fecha del contrato."),
+            info_text(text="4. Haz clic en 'Generar Contrato' para crear el documento."),
+            info_text(text="5. El contrato se guardará con el nombre especificado..."),
+            input_filename,
+        ]
+    )
+    
+    def open_date_picker(e):
+        date_picker.open = True
+        page.update()
 
-    def crear_input(label, lista):
-        if label.lower() == "estado civil":
-            dropdown = ft.Dropdown(
-                label=label,
-                options=[
-                    ft.dropdown.Option("Soltero/a"),
-                    ft.dropdown.Option("Casado/a"),
-                    ft.dropdown.Option("Divorciado/a"),
-                    ft.dropdown.Option("Viudo/a"),
-                ],
-                filled=True,
-                expand=True
-            )
-            lista.append(dropdown)
-            return dropdown
-        elif label.lower() == "razón":
-            dropdown = ft.Dropdown(
-                label=label,
-                options=[
-                    ft.dropdown.Option("Edificio"),
-                    ft.dropdown.Option("Casa"),
-                    ft.dropdown.Option("Apartamento"),
-                    ft.dropdown.Option("Terreno"),
-                    ft.dropdown.Option("Local Comercial"),
-                ],
-                filled=True,
-                expand=True
-            )
-            lista.append(dropdown)
-            return dropdown
-        else:
-            campo = ft.TextField(label=label, filled=True, expand=True)
-            lista.append(campo)
-            return campo
+    datetime_button = ft.ElevatedButton(
+                        text= "Seleccionar fecha",
+                        icon=ft.Icons.CALENDAR_MONTH,
+                        on_click=open_date_picker,
+                        bgcolor= ft.Colors.ORANGE,
+                        color=ft.Colors.WHITE,
+                        width=200,
+                        height=40,
+                        style=ft.ButtonStyle(
+                            text_style=ft.TextStyle(
+                            size=16, 
+                            weight="bold",
+                            ),
+                        )
+    )
+    
+    status_text = ft.Text("Esperando acción...", size=15, color=dark_grey)
+
 
     def crear_seccion(titulo, campos, lista_destino):
-        return ft.Column([
-            ft.Text(titulo, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),
-            ft.ResponsiveRow(
-                [crear_input(campo, lista_destino) for campo in campos],
-                columns=12,
-                alignment="start",
-                spacing=10
-            )
-        ], spacing=15)
+        input_list.clear()  # Resetear el orden antes de agregar nuevos
+        if titulo == "Datos de Oficina":
+            return ft.Column([
+                ft.Text(titulo, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),
+                ft.ResponsiveRow(
+                    [create_input(titulo, campo, lista_destino) for campo in campos],
+                    columns=12,
+                    alignment="start",
+                    spacing=10
+                ),
+                ft.Row([
+                    ft.Text("Fecha: ", weight="bold"),
+                    datetime_button
+                ], spacing=10)
+            ], spacing=15)
+        else:
+            return ft.Column([
+                ft.Text(titulo, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),
+                ft.ResponsiveRow(
+                    [create_input(titulo, campo, lista_destino) for campo in campos],
+                    columns=12,
+                    alignment="start",
+                    spacing=10
+                )
+            ], spacing=15)
 
     vendedor_campos = [
         "Nombre", "Nacionalidad", "Ocupación", "Estado civil",
@@ -78,194 +106,88 @@ def compraventa_contract_view(page: ft.Page):
     ]
 
     oficina_campos = [
-        "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "Número de folio", "Protocolo", "Tomo", "Trimestre referido"
+        "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", 
+        "Número de folio", "Protocolo", "Tomo", "Trimestre referido"
     ]
-    selected_date = datetime.now()
-    fecha_text = ft.Text()
     
-    async def pick_date(e):
-        date_picker = ft.DatePicker(
-            first_date=datetime(datetime.now().year - 10, 1, 1),
-            last_date=datetime(datetime.now().year + 10, 12, 31),
-        )
-        
-        page.overlay.append(date_picker)
-        await page.update_async()  # Actualiza la página primero
-        
-        # Abre el diálogo del DatePicker
-        await date_picker.open_async()  # Método actualizado
-        
-        nonlocal selected_date
+    selected_date_value = None 
+
+    date_picker = ft.DatePicker(
+        first_date=datetime(1980, 1, 1),
+        last_date=datetime.now(),
+        on_change=lambda e: handle_date_selection(e) 
+    )
+
+    page.overlay.append(date_picker)
+
+    def handle_date_selection(e):
+        nonlocal selected_date_value  
         if date_picker.value:
-            selected_date = date_picker.value
-            fecha_text.value = selected_date.strftime("%d/%m/%Y")
-            await page.update_async()
-    
-    def crear_seccion(titulo, campos, lista_destino):
-        # Si es la sección de oficina, añadimos el date picker
-        if titulo == "Datos de Oficina":
-            return ft.Column([
-                ft.Text(titulo, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),
-                ft.ResponsiveRow(
-                    [crear_input(campo, lista_destino) for campo in campos],
-                    columns=12,
-                    alignment="start",
-                    spacing=10
-                ),
-                ft.Row([
-                    ft.Text("Fecha: ", weight="bold"),
-                    fecha_text,
-                    ft.IconButton(
-                        icon=ft.Icons.CALENDAR_MONTH,
-                        on_click=pick_date,
-                        tooltip="Seleccionar fecha"
-                    )
-                ], spacing=10)
-            ], spacing=15)
+            selected_date_value = date_picker.value 
+            datetime_button.text = selected_date_value.strftime("%d/%m/%Y")
+            datetime_button.icon = ft.Icons.CHECK
         else:
-            return ft.Column([
-                ft.Text(titulo, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),
-                ft.ResponsiveRow(
-                    [crear_input(campo, lista_destino) for campo in campos],
-                    columns=12,
-                    alignment="start",
-                    spacing=10
-                )
-            ], spacing=15)
-
-    
-    
+            datetime_button.text = "Seleccionar fecha"
+        page.update()
+        
     def generar_contrato(e):
-        # Datos de prueba automáticos (mock data)
-        mock_vendedor = {
-            'Nombre': 'MARIA GABRIELA SUAREZ',
-            'Nacionalidad': 'venezolana',
-            'Ocupación': 'Comerciante',
-            'Estado civil': 'Soltera',
-            'Cédula': 'V-12345678',
-            'RIF': 'V-987654321',
-            'Domicilio (Ciudad)': 'Barcelona',
-            'Domicilio (Municipio)': 'Simón Bolívar',
-            'Domicilio (Estado)': 'Anzoátegui'
-        }
-
-        mock_comprador = {
-            'Nombre': 'JUAN CARLOS PEREZ',
-            'Nacionalidad': 'venezolanO',
-            'Estado civil': 'Casado',
-            'Cédula': 'V-87654321',
-            'RIF': 'V-123456789',
-            'Domicilio (Ciudad)': 'Barcelona',
-            'Domicilio (Municipio)': 'Simón Bolívar',
-            'Domicilio (Estado)': 'Anzoátegui'
-        }
-        
-        
-        mock_inmueble = {
-            'Razón': 'Casa',
-            'Ubicación': 'Calle Principal, número 123',
-            'Domicilio (Ciudad)': 'Barcelona',
-            'Domicilio (Parroquia)': 'El Carmen',
-            'Domicilio (Municipio)': 'Simón Bolívar',
-            'Domicilio (Estado)': 'Anzoátegui',
-            'Código catastral': '1234567890',
-            'Superficie (m²)': '120,00',
-            'Límite Norte': 'Calle Principal',
-            'Límite Sur': 'Calle Secundaria',
-            'Límite Este': 'Avenida Este',
-            'Límite Oeste': 'Avenida Oeste',
-            'Precio': '1.999.100,00',
-            'Número de cheque': '987654',
-            'Cuenta a depositar': '1234567890',
-            'Banco': 'Banco de Venezuela'
-        }
-    
-        fecha_dict = fecha_a_formato_legal(selected_date)
-        mock_oficina = {
-            'Domicilio (Ciudad)': 'Barcelona',
-            'Domicilio (Municipio)': 'Simón Bolívar',
-            'Domicilio (Estado)': 'Anzoátegui',
-            'Fecha': selected_date.strftime("%d/%m/%Y"),
-            'Fecha_legal': fecha_dict['completa'],
-            'Ano_legal': fecha_dict['ano_letras'],  # Coincide con 'ano_letras'
-            'Ano_numero': fecha_dict['ano_numero'],
-            'Ano_documento': fecha_dict['ano_documento'],  # Cambiado a 'ano_documento'['ano_formato_documento'],
-            'Número de folio': '123',
-            'Protocolo': '456',
-            'Tomo': '789',
-            'Trimestre referido': 'Primer'
-        }
-
         try:
-            # Llamar a la función de generación con datos de prueba
+            v_data = {campo.label: campo.value for campo in vendedor_fields}
+            c_data = {campo.label: campo.value for campo in comprador_fields} 
+            i_data = {campo.label: campo.value for campo in inmueble_fields}
+            o_data = {campo.label: campo.value for campo in oficina_fields}
+
+            fecha_dict = fecha_a_formato_legal(selected_date_value)
+            o_data.update({
+                'Fecha': selected_date_value.strftime("%d/%m/%Y"),
+                'Fecha_legal': fecha_dict['completa'],
+                'Ano_legal': fecha_dict['ano_letras'],
+                'Ano_numero': fecha_dict['ano_numero'],
+                'Ano_documento': fecha_dict['ano_documento']
+            })
+
             ruta_contrato = generate_buy_and_sell_doc(
-                vendedor_data=mock_vendedor,
-                comprador_data=mock_comprador,
-                inmueble_data=mock_inmueble,
-                oficina_data=mock_oficina,
-                page=page
+                vendedor_data=v_data,
+                comprador_data=c_data,
+                inmueble_data=i_data,
+                oficina_data=o_data,
+                page=page,
+                input_filename=input_filename.value 
             )
 
-            # Mostrar mensaje de éxito
-            print(f"✅ Contrato generado exitosamente!\n{ruta_contrato}"),
-
+            status_text.value = f"✅ Contrato generado exitosamente!\n{ruta_contrato}",
+            status_text.color = ft.Colors.GREEN_700
         except Exception as ex:
-            print(f"❌ Error al generar contrato: {str(ex)}"),
+            status_text.value = f"❌ Error al generar contrato: {str(ex)}",
+            status_text.color = ft.Colors.RED_700
         page.update()
-
-    
-    # def generar_contrato(e):
-    #     # Validar campos obligatorios
-    #     required_fields = [
-    #         *vendedor_fields[:8],
-    #         *[campo for campo in comprador_fields if campo.label in ["Nombre", "Estado civil", "RIF"]],
-    #         *inmueble_fields[:13]
-    #     ]
-        
-    #     if not all(campo.value for campo in required_fields):
-    #         print("❌ Complete todos los campos obligatorios"),
-    #         page.update()
-    #         return
-
-    #     try:
-    #         # Obtener datos de los campos
-    #         v_data = {campo.label: campo.value for campo in vendedor_fields}
-    #         c_data = {campo.label: campo.value for campo in comprador_fields} 
-    #         i_data = {campo.label: campo.value for campo in inmueble_fields}
-    #         o_data = {campo.label: campo.value for campo in oficina_fields}
-
-    #         # Llamar a la función de generación
-    #         ruta_contrato = generate_buy_and_sell_doc(
-    #             vendedor_data=v_data,
-    #             comprador_data=c_data,
-    #             inmueble_data=i_data,
-    #             oficina_data=o_data,
-    #             page=page
-    #         )
-
-    #         # Mostrar mensaje de éxito
-    #         print(f"✅ Contrato generado: {ruta_contrato}"),
-
-    #     except Exception as ex:
-    #         print(f"❌ Error: {str(ex)}"),
-        
-    #     page.update()
 
     return ft.Column(
         controls=[
             ft.Column([
                 ft.Container(height=20),
-                nombre_archivo,
+                info,
                 crear_seccion("Datos del Vendedor", vendedor_campos, vendedor_fields),
                 crear_seccion("Datos del Comprador", comprador_campos, comprador_fields),
                 crear_seccion("Datos del Inmueble", inmueble_campos, inmueble_fields),
                 crear_seccion("Datos de Oficina", oficina_campos, oficina_fields),
-                ft.ElevatedButton("Generar Contrato", icon=ft.Icons.DESCRIPTION, on_click=generar_contrato),
+                gradient_button(
+                    text= "Generar Contrato",
+                    width= 200,
+                    height= 40,
+                    gradient= gradient_color,
+                    on_click= generar_contrato,
+                ),
                 status_text,
-                ft.Container(height=100),
-            ], spacing=15, scroll=ft.ScrollMode.AUTO, expand=True)
+                ft.Container(height=150),
+            ], 
+            spacing=15, 
+            scroll=ft.ScrollMode.AUTO, 
+            expand=True,
+            alignment=ft.MainAxisAlignment.START,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER)
         ],
-        height=600,
+        scroll= ft.ScrollMode.AUTO,
         expand=True,
         width=800,
     )

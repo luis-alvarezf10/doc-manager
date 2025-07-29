@@ -71,7 +71,7 @@ class HomeView(ft.View):
                 ft.NavigationRailDestination(
                     icon= ft.Icon(ft.Icons.LIBRARY_BOOKS_OUTLINED, color="white"),
                     selected_icon= ft.Icons.LIBRARY_BOOKS,
-                    label= "Funciones"
+                    label= "Funciones",
                 ),
                 ft.NavigationRailDestination(
                     icon=ft.Icon(ft.Icons.FOLDER_OUTLINED, color="white"),

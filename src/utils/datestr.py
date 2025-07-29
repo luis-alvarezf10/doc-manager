@@ -72,7 +72,21 @@ def fecha_a_formato_legal(fecha):
                         if decena >= 20 and unidad > 0:
                             return base + unidades[decena] + " Y " + unidades[unidad]
                         return base + unidades[decena]
+            elif 1980 <= año <= 1999:
+                base = "MIL NOVECIENTOS"
+                resto = año - 1900
+                
+                if resto == 0:
+                    return base
+                elif resto in unidades:
+                    return base + " " + unidades[resto]
+                else:
+                    decena = (resto // 10) * 10
+                    unidad = resto % 10
+                    return base + " " + unidades[decena] + (" Y " + unidades[unidad] if unidad > 0 else "")
             
+            else:
+                raise ValueError("Año fuera de rango (1980-2099)")
             return str(año)
         
         ano_letras = convertir_año(fecha.year)
