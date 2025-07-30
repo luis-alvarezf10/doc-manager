@@ -151,7 +151,7 @@ def generate_buy_and_sell_doc(vendedor_data, comprador_data, inmueble_data, ofic
         
         
         if input_filename == "":
-            filename =  f"CONTRATO DE COMPRAVENTA DE PROPIEDAD {vendedor_data['Nombre'].upper()} {comprador_data['Nombre'].upper()}.docx"
+            filename =  f"CONTRATO DE COMPRAVENTA DE PROPIEDAD {vendedor_data['Nombre'].upper()} Y {comprador_data['Nombre'].upper()}.docx"
         else:
             filename = f"{input_filename.upper()}.docx"
             
@@ -167,5 +167,5 @@ def generate_buy_and_sell_doc(vendedor_data, comprador_data, inmueble_data, ofic
     except Exception as ex:
         # notificacion de fallo
         if page:
+            print(f"Error: {str.ex}")
             page.update()
-        raise

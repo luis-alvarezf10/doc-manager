@@ -16,7 +16,7 @@ def gradient_button(*, text:str, width:int = 350, height:int = 48, gradient:list
             color=ft.Colors.with_opacity(0.3, ft.Colors.BLUE_GREY_900),
             offset=ft.Offset(0, 0),
         ),
-        margin=ft.margin.only(top=20),
+        margin=ft.margin.only(top=10),
         content= ft.ElevatedButton(
             content= ft.Text(
                 value= text,

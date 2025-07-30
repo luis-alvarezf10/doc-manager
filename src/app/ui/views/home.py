@@ -1,10 +1,10 @@
 # src/app/ui/views/home.py
 
 import flet as ft
-from src.app.ui.views.functions import functions_page
-from src.app.ui.views.folder_view import folder_view
-from src.app.ui.views.bcv_view import create_bcv_view
-from src.app.ui.views.reports_view import create_reports_view
+from src.app.ui.views.nav_destinations.functions import functions_page
+from src.app.ui.views.nav_destinations.folder_view import folder_view
+from src.app.ui.views.nav_destinations.bcv_view import create_bcv_view
+from src.app.ui.views.nav_destinations.reports_view import create_reports_view
 from src.utils.colors import grey
 
 class HomeView(ft.View):
@@ -84,7 +84,7 @@ class HomeView(ft.View):
                     label="Chat LAN",
                 ),
                 ft.NavigationRailDestination(
-                    icon=ft.Icon(ft.Icons.MONETIZATION_ON, color="white"),
+                    icon=ft.Icon(ft.Icons.MONETIZATION_ON_OUTLINED, color="white"),
                     selected_icon=ft.Icons.MONETIZATION_ON,
                     label="Cambio BCV",
                 ),
@@ -94,7 +94,6 @@ class HomeView(ft.View):
                     label="Reportes",
                 ),
             ],
-            # ...existing code...
             trailing= ft.Column(
                 controls = [
                     ft.Container(height=120),
@@ -134,13 +133,13 @@ class HomeView(ft.View):
         return getattr(self, attr_name)
 
     def init_chat_view(self):
-        from src.app.ui.views.lan_chat_view import LANChatView
+        from src.app.ui.views.nav_destinations.lan_chat_view import LANChatView
         self.lan_chat_instance = LANChatView(self.page)
         return self.lan_chat_instance.create_view()
 
     def create_folder_view(self):
         chat_instance = getattr(self, "lan_chat_instance", None)
-        self.folder_view_instance = folder_view(self.page, None, chat_instance)
+        self.folder_view_instance = folder_view(self.page, chat_instance)
         return self.folder_view_instance
 
     def on_navigation_change(self, e):

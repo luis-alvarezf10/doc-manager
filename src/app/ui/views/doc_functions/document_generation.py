@@ -1,7 +1,7 @@
 import flet as ft 
 from src.app.ui.widgets.custom_app_bar import custom_app_bar
-from src.app.ui.views.doc_functions.buy_and_sell import compraventa_contract_view
-from src.utils.colors import grey, middle_blue
+from src.app.ui.views.doc_generation.buy_and_sell import compraventa_contract_view
+from src.utils.colors import grey
 
 
 def document_generation_view(page: ft.Page, back_callback: callable = None) -> ft.View:
@@ -52,7 +52,7 @@ def document_generation_view(page: ft.Page, back_callback: callable = None) -> f
                 on_click=lambda e, c=content: change_content(
                     c if isinstance(c, ft.Control) else ft.Text(c)
                 ), 
-                bgcolor=middle_blue,
+                bgcolor=grey,
                 color=ft.Colors.WHITE,
                 style=ft.ButtonStyle(
                     shape=ft.RoundedRectangleBorder(radius=10),

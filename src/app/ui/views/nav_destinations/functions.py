@@ -1,9 +1,9 @@
 import flet as ft
 
-from src.utils.colors import grey, gradient_color
+from src.utils.colors import grey, main_gradient_color
 from src.app.ui.widgets.gradient_text import gradient_text
-from src.app.ui.widgets.action_button import action_button
-from src.app.ui.views.document_generation import document_generation_view
+from src.app.ui.widgets.gradient_button import gradient_button
+from src.app.ui.views.doc_functions.document_generation import document_generation_view
 from src.app.ui.views.doc_functions.compress_view import compress_view
 from src.app.ui.views.doc_functions.unify_pdf_view import pdf_convert_view
 
@@ -29,7 +29,7 @@ def functions_page(page: ft.Page, change_content_callback=None):
                     gradient_text(
                         text="Axiology",
                         size=50,
-                        gradient= gradient_color
+                        gradient= main_gradient_color
                     ),
                     ft.Text("Document Manager", size=30, weight=ft.FontWeight.BOLD, color=grey),
                 ],
@@ -53,7 +53,7 @@ def functions_page(page: ft.Page, change_content_callback=None):
                 weight=ft.FontWeight.BOLD,
                 color=grey,
             ),
-            *[action_button(text=label, on_click=make_handler(view)) for label, view in actions],
+            *[gradient_button(text=label,gradient=main_gradient_color, on_click=make_handler(view)) for label, view in actions],
         ],
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         expand=True,

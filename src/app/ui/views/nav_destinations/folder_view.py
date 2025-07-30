@@ -1,12 +1,11 @@
 import flet as ft
 import os
 from src.utils.colors import *
-from src.app.ui.widgets.custom_app_bar import custom_app_bar
 
-def folder_view(page: ft.Page, back_callback=None, chat_instance=None):
-    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-    plaf_system_path = os.path.join(desktop_path, "PLAF_system")
-    current_path = plaf_system_path
+def folder_view(page: ft.Page, chat_instance=None):
+    documents_path = os.path.join(os.path.expanduser("~"), "Documents")
+    axiology_path = os.path.join(documents_path, "Axiology Document Manager")
+    current_path = axiology_path
     folders_list = ft.Column()
     status_text = ft.Text("", size=14)
     path_text = ft.Text("", size=12, color="grey")
@@ -22,7 +21,7 @@ def folder_view(page: ft.Page, back_callback=None, chat_instance=None):
 
     def create_plaf_system():
         try:
-            os.makedirs(plaf_system_path, exist_ok=True)
+            os.makedirs(axiology_path, exist_ok=True)
             return True
         except Exception as ex:
             update_status(f"Error al crear PLAF_system: {ex}", "red")
@@ -138,7 +137,7 @@ def folder_view(page: ft.Page, back_callback=None, chat_instance=None):
             return
 
         path_text.value = f"Ruta: {current_path}"
-        if current_path != plaf_system_path:
+        if current_path != axiology_path:
             folders_list.controls.append(ft.Card(
                 content=ft.Container(
                     ft.Row([ft.Icon(ft.Icons.ARROW_BACK, color="blue"), ft.Text(".. (Volver)", size=16, weight=ft.FontWeight.BOLD)]),
@@ -166,7 +165,7 @@ def folder_view(page: ft.Page, back_callback=None, chat_instance=None):
             update_status(f"Error al escanear carpetas: {ex}", "red")
 
     refresh_btn = ft.ElevatedButton("Actualizar", bgcolor="blue", color="white", icon=ft.Icons.REFRESH, on_click=lambda e: scan_folders())
-    open_system_btn = ft.ElevatedButton("Abrir PLAF System", bgcolor="green", color="white", icon=ft.Icons.FOLDER_OPEN, on_click=lambda e: open_path(plaf_system_path))
+    open_system_btn = ft.ElevatedButton("Abrir PLAF System", bgcolor="green", color="white", icon=ft.Icons.FOLDER_OPEN, on_click=lambda e: open_path(axiology_path))
     select_btn = ft.ElevatedButton("Seleccionar Archivos", bgcolor="purple", color="white", icon=ft.Icons.CHECK_BOX, on_click=toggle_selection_mode)
     send_btn = ft.ElevatedButton("Enviar por Chat", bgcolor="orange", color="white", icon=ft.Icons.SEND, on_click=send_selected_files, visible=False)
 

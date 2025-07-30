@@ -8,4 +8,4 @@ light_grey = "#a5afd8"
 
 white = "#ffffff"
 
-gradient_color = [dark_blue, blue]
+main_gradient_color = [middle_blue,blue]

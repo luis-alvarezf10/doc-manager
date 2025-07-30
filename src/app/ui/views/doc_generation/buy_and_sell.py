@@ -3,7 +3,7 @@ from datetime import datetime
 from src.documents.buy_and_sell_doc import generate_buy_and_sell_doc
 from src.utils.datestr import fecha_a_formato_legal
 
-from src.utils.colors import dark_grey, gradient_color
+from src.utils.colors import dark_grey, main_gradient_color
 from src.app.ui.widgets.gradient_button import gradient_button
 from src.app.ui.widgets.input_form import create_input, input_list
 from src.app.ui.widgets.info_selected_mode import info_text
@@ -29,9 +29,8 @@ def compraventa_contract_view(page: ft.Page):
             ft.Text("Generador de Contrato de Compraventa", size=25,text_align=ft.TextAlign.CENTER, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold", ),  
             info_text(text="1. Completa los campos para generar un contrato de compraventa."),  
             info_text(text="2. Asegúrate de ingresar todos los datos requeridos."),
-            info_text(text="3. Selecciona la fecha del contrato."),
-            info_text(text="4. Haz clic en 'Generar Contrato' para crear el documento."),
-            info_text(text="5. El contrato se guardará con el nombre especificado..."),
+            info_text(text="3. Haz clic en 'Generar Contrato' para crear el documento."),
+            info_text(text="4. El contrato se guardará con el nombre especificado o con el nombre de vendedor y comprador en la carpeta de -> Documentos Generados -> Contratos de Compra Venta"),
             input_filename,
         ]
     )
@@ -173,7 +172,7 @@ def compraventa_contract_view(page: ft.Page):
                     text= "Generar Contrato",
                     width= 200,
                     height= 40,
-                    gradient= gradient_color,
+                    gradient= main_gradient_color,
                     on_click= generar_contrato,
                 ),
                 ft.Container(height=150),
