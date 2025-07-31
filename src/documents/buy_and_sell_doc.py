@@ -96,7 +96,11 @@ def generate_buy_and_sell_doc(vendedor_data, comprador_data, inmueble_data, ofic
         add_formatted_text(intro_p, f"{vendedor_data['Nacionalidad']}, mayor de edad, {vendedor_data['Ocupación'].lower()}, ")
         add_formatted_text(intro_p, f"{vendedor_data['Estado civil'].lower()}, ")
         add_formatted_text(intro_p, "titular de la cédula de identidad personal No. ")
-        add_formatted_text(intro_p, f"V-{vendedor_data.get('Cédula', 'No especificado')}, ", bold=True)
+        if vendedor_data.get("Nacionalidad", "").lower() in  ["venezolano", "venezolana", "venezolano/a"]:
+            add_formatted_text(intro_p, "V-", bold=True)
+        else:
+            add_formatted_text(intro_p, "E-", bold=True)
+        add_formatted_text(intro_p, f"{vendedor_data.get('Cédula', 'No especificado')}, ", bold=True)
         add_formatted_text(intro_p, "con Registro de Información Fiscal (R.I.F) No. ")
         add_formatted_text(intro_p, f"{vendedor_data['RIF']}, ", bold=True)
         add_formatted_text(intro_p, f"con domicilio en esta ciudad de {vendedor_data['Domicilio (Ciudad)']}, ")

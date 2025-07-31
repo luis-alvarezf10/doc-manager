@@ -1,5 +1,5 @@
 import flet as ft
-from src.app.utils.colors import *
+from src.utils.colors import *
 from src.app.ui.widgets.custom_app_bar import custom_app_bar
 from docx import Document
 import pandas as pd

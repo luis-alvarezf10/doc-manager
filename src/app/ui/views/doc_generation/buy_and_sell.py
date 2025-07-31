@@ -9,7 +9,7 @@ from src.app.ui.widgets.input_form import create_input, input_list
 from src.app.ui.widgets.info_selected_mode import info_text
 from src.app.ui.widgets.show_snackbar import show_snackbar
 
-def compraventa_contract_view(page: ft.Page):
+def buy_and_sell_form(page: ft.Page):
     vendedor_fields = []
     comprador_fields = []
     inmueble_fields = []
@@ -175,7 +175,7 @@ def compraventa_contract_view(page: ft.Page):
                     gradient= main_gradient_color,
                     on_click= generar_contrato,
                 ),
-                ft.Container(height=150),
+                ft.Container(height=100),
             ], 
             spacing=15, 
             scroll=ft.ScrollMode.AUTO, 
@@ -183,7 +183,6 @@ def compraventa_contract_view(page: ft.Page):
             alignment=ft.MainAxisAlignment.START,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER)
         ],
-        scroll= ft.ScrollMode.AUTO,
         expand=True,
         width=800,
     )

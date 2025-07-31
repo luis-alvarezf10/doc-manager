@@ -1,6 +1,7 @@
 import flet as ft 
 from src.app.ui.widgets.custom_app_bar import custom_app_bar
-from src.app.ui.views.doc_generation.buy_and_sell import compraventa_contract_view
+from src.app.ui.views.doc_generation.buy_and_sell import buy_and_sell_form
+from src.app.ui.views.doc_generation.constituve_act import constituve_act_form
 from src.utils.colors import grey
 
 
@@ -40,8 +41,8 @@ def document_generation_view(page: ft.Page, back_callback: callable = None) -> f
 
     # Menú de tipos de contrato
     buttons = [
-        ("Compra Venta", compraventa_contract_view(page)),
-        ("Constitutivo", "Contrato: Constitutivo de empresa"),
+        ("Compra Venta", buy_and_sell_form(page)),
+        ("Constitutivo", constituve_act_form(page)),
         ("Trabajo", "Contrato: Trabajo")
     ]
 

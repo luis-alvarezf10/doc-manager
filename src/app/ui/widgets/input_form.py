@@ -30,12 +30,15 @@ def create_input(titulo: None, label, lista):
             text_size=16,
             on_change=_move_focus,
         )
-        lista.append(dropdown)
         input_list.append(dropdown)
+        if isinstance(lista, dict):
+            lista[label] = dropdown
+        elif isinstance(lista, list):
+            lista.append(dropdown)
         return dropdown
 
     # TextField con valor predeterminado
-    if titulo and titulo.lower() == "datos de oficina" and label_lower in ["domicilio (ciudad)", "domicilio (municipio)", "domicilio (estado)"]:
+    if titulo.lower() == "datos de oficina" and label_lower in ["domicilio (ciudad)", "domicilio (municipio)", "domicilio (estado)"]:
         default_values = {
             "domicilio (ciudad)": "Barcelona",
             "domicilio (municipio)": "Simón Bolívar",
@@ -53,10 +56,50 @@ def create_input(titulo: None, label, lista):
             text_size=16,
             on_submit=_move_focus,
         )
-        lista.append(tf)
         input_list.append(tf)
+        if isinstance(lista, dict):
+            lista[label] = tf
+        elif isinstance(lista, list):
+            lista.append(tf)
         return tf
-
+    if titulo.lower() == "datos de accionista" and label_lower == "ocupación":
+        tf = ft.TextField(
+            label=label,
+            value= "comerciante",
+            filled=True,
+            expand=True,
+            border_radius=8,
+            border_width=0,
+            border_color="transparent",
+            focused_border_width=0,
+            text_size=16,
+            on_submit=_move_focus,
+        )
+        input_list.append(tf)
+        if isinstance(lista, dict):
+            lista[label] = tf
+        elif isinstance(lista, list):
+            lista.append(tf)
+        return tf
+    if label_lower == "nacionalidad":
+        tf = ft.TextField(
+            label=label,
+            value="venezolano/a",
+            filled=True,
+            expand=True,
+            border_radius=8,
+            border_width=0,
+            border_color="transparent",
+            focused_border_width=0,
+            text_size=16,
+            on_submit=_move_focus,
+        )
+        input_list.append(tf)
+        if isinstance(lista, dict):
+            lista[label] = tf
+        elif isinstance(lista, list):
+            lista.append(tf)
+        return tf
     # TextField general
     tf = ft.TextField(
         label=label,
@@ -69,6 +112,9 @@ def create_input(titulo: None, label, lista):
         text_size=16,
         on_submit=_move_focus,
     )
-    lista.append(tf)
     input_list.append(tf)
+    if isinstance(lista, dict):
+        lista[label] = tf
+    elif isinstance(lista, list):
+        lista.append(tf)
     return tf
