@@ -1,10 +1,10 @@
 import flet as ft
 from docx import Document
 from docx.shared import Pt, Cm, Inches
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_UNDERLINE
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 import os
 from datetime import datetime
-
+from src.documents.formated_text import add_formatted_text
 
 from src.utils.convert_to_letters import number_to_letters
 
@@ -49,13 +49,7 @@ def generate_buy_and_sell_doc(vendedor_data, comprador_data, inmueble_data, ofic
         
     try:
         # Función auxiliar para formato
-        def add_formatted_text(paragraph, text, bold=False, underline=False):
-            run = paragraph.add_run(text)
-            run.bold = bold
-            if underline:
-                run.underline = WD_UNDERLINE.SINGLE
-            return paragraph
-
+      
         # Crear documento
         doc = Document()
         

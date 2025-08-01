@@ -2,14 +2,15 @@ import flet as ft
 from src.app.ui.widgets.input_form import create_input
 from src.app.ui.widgets.info_selected_mode import info_text
 from src.app.ui.widgets.gradient_button import gradient_button
-from src.utils.colors import main_gradient_color
+from src.utils.colors import main_gradient_color, grey
+from src.documents.constitutive_act import generate_constitutive_act
 
 def constituve_act_form(page: ft.Page):
-    company = ["Nombre", "Dedicación", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)"]
-    show_visible_columns = ["Nombre", "Cédula", "Número de acciones", "Cargo"]
+    company = ["Nombre", "Dedicación", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "Capital de la compañía", "Años de función de accionistas"]
+    show_visible_columns = ["Nombre", "Cédula", "No Acciones", "Cargo"]
 
     accionistas = []
-    accionista_fields = ["Nombre", "Nacionalidad", "Ocupación", "Estado civil", "Cédula", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "Número de acciones", "Cargo"]
+    accionista_fields = ["Nombre", "Nacionalidad", "Ocupación", "Estado civil", "Cédula", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "No Acciones", "Cargo"]
     
     info = ft.Column(
         controls=[
@@ -41,7 +42,34 @@ def constituve_act_form(page: ft.Page):
         columns=[ft.DataColumn(ft.Text(col)) for col in show_visible_columns],
         rows=[]
     )
-
+    
+    
+    def contar_acciones():
+        total = 0
+        for a in accionistas:
+            try:
+                total += int(a.get("No Acciones", 0))
+            except ValueError:
+                print(f"Error al convertir acciones de {a['Nombre']}")
+        print(f"Total de acciones: {total}")
+        return total
+    
+    acciones_total_text = ft.Text("0", color=ft.Colors.WHITE, weight="bold", size=20)
+    container_cont = ft.Container(
+        content=acciones_total_text,
+        bgcolor=grey,
+        border_radius=10,
+        padding=10,
+        alignment=ft.alignment.center,
+        width=150,
+        height=45,
+    )
+    
+    def update_total_acciones():
+        total = contar_acciones()
+        acciones_total_text.value = f"{total}"
+        page.update()
+        
     def add_accionista(e):
         a_data = {k: v.value for k, v in accionista_inputs.items()}
         if any(v.strip() == "" for v in a_data.values()):
@@ -51,6 +79,7 @@ def constituve_act_form(page: ft.Page):
         accionistas.append(a_data.copy())
         print("Total accionistas:", len(accionistas))  # <- Aquí
         update_table()
+        update_total_acciones()
         clear_fields()
 
     def update_table():
@@ -97,12 +126,33 @@ def constituve_act_form(page: ft.Page):
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER
     )
     
-    presentantes = ["Pedro Álvarez", "Marianela Franceschi"]
+    presentantes_data = [
+        {"nombre": "Pedro Luis Álvarez Farías", 
+         "nacionalidad": "venezolano", 
+         "ocupacion": "abogado",
+         "estado civil": "casado",
+         "cedula": "V-8.245.502",
+         "rif": "8.245.502-3", 
+         "ciudad": "Barcelona", 
+         "municipio": "Simón Bolívar", 
+         "estado": "Anzoátegui"
+        },
+        {"nombre": "Marianela Del Valle Franceschi Chacín De Álvarez", 
+         "nacionalidad": "venezolana", 
+         "ocupacion": "docente",     
+         "estado civil": "casada",
+         "cedula": "V-8.262.318",
+         "rif": "8.262.318-0",
+         "ciudad": "Barcelona", 
+         "municipio": "Simón Bolívar", 
+         "estado": "Anzoátegui"
+        }
+    ]
     
     presentante = ft.Dropdown(
         label="Presentante",
-        value= presentantes[0],
-        options=[ft.dropdown.Option(nombre) for nombre in presentantes],
+        value= presentantes_data[0]["nombre"],
+        options=[ft.dropdown.Option(p["nombre"]) for p in presentantes_data],
         filled=True,
         expand=True,
         border_radius=8,
@@ -112,15 +162,39 @@ def constituve_act_form(page: ft.Page):
         text_size=16,
     )
     
+    
+    info_table =  ft.Column(
+                        controls= [
+                            ft.Text("Tabla de Accionistas", style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),
+                            accionistas_table,
+                            ft.Row([
+                                ft.Text("Total de acciones: ", weight="bold"),
+                                container_cont
+                            ], spacing=10)
+                        ]
+                )
+    
     def generate_act(e):
         
-        if len(accionistas_table.rows) < 2:
-            print("No hay accionistas")
-            return
-        # try:
-            
-        # except Exception as ex:
-        #     print(ex)
+        # if len(accionistas_table.rows) < 2:
+        #     print("No hay accionistas")
+        #     return
+        presentante_seleccionado = presentante.value
+        p_data = None
+        for persona in presentantes_data:
+            if persona["nombre"] == presentante_seleccionado:
+                p_data = persona
+                print("Presentante seleccionado:", persona)
+                break
+        
+        try:           
+            ruta_contrato = generate_constitutive_act(accionistas, p_data)
+            print("contrato generado en: ", ruta_contrato)
+        except Exception as ex:
+            print(f"Error: {str(ex)}")
+        
+        
+        
         page.update()
     
     return ft.Column(
@@ -144,7 +218,7 @@ def constituve_act_form(page: ft.Page):
             ft.Row(
                 controls=[
                     accionista_form,
-                    accionistas_table
+                    info_table
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 vertical_alignment=ft.CrossAxisAlignment.START
