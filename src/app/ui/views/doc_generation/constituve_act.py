@@ -4,13 +4,59 @@ from src.app.ui.widgets.info_selected_mode import info_text
 from src.app.ui.widgets.gradient_button import gradient_button
 from src.utils.colors import main_gradient_color, grey
 from src.documents.constitutive_act import generate_constitutive_act
+from src.app.functions.normalizar import normalizar_nacionalidad, normalizar_ocupaciones, normalizar_estados_civiles, imprimir_domicilios_unicos
 
 def constituve_act_form(page: ft.Page):
-    company = ["Nombre", "Dedicación", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "Capital de la compañía", "Años de función de accionistas"]
+    company = ["Nombre", "Dedicación", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "Duración","Capital de la compañía", "Años de función de accionistas"]
     show_visible_columns = ["Nombre", "Cédula", "No Acciones", "Cargo"]
 
-    accionistas = []
-    accionista_fields = ["Nombre", "Nacionalidad", "Ocupación", "Estado civil", "Cédula", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "No Acciones", "Cargo"]
+    # accionistas = []
+    accionistas = [
+        {
+            "Nombre": "Pedro Luis González",
+            "Sexo": "Masculino",
+            "Nacionalidad": "Líbanes",
+            "Ocupación": "Docente",
+            "Estado civil": "Casado",
+            "Cédula": "12345678",
+            "RIF": "12345678-9",
+            "Domicilio (Ciudad)": "Caracas",
+            "Domicilio (Municipio)": "Libertador",
+            "Domicilio (Estado)": "Distrito Capital",
+            "No Acciones": 150,
+            "Cargo": "Presidente"
+        },
+        {
+            "Nombre": "Luisa Fernanda Ríos",
+            "Sexo": "Femenino",
+            "Nacionalidad": "Líbanes",
+            "Ocupación": "Administradora",
+            "Estado civil": "Soltera",
+            "Cédula": "87654321",
+            "RIF": "87654321-0",
+            "Domicilio (Ciudad)": "Valencia",
+            "Domicilio (Municipio)": "Naguanagua",
+            "Domicilio (Estado)": "Carabobo",
+            "No Acciones": 100,
+            "Cargo": "Vicepresidenta"
+        },
+        {
+            "Nombre": "Ali Husseini",
+            "Sexo": "Masculino",
+            "Nacionalidad": "Venezolano",
+            "Ocupación": "Docente",
+            "Estado civil": "Casado",
+            "Cédula": "11223344",
+            "RIF": "11223344-5",
+            "Domicilio (Ciudad)": "Caracas",
+            "Domicilio (Municipio)": "Libertador",
+            "Domicilio (Estado)": "Distrito Capital",
+            "No Acciones": 80,
+            "Cargo": "Tesorero"
+        }
+    ]
+
+    accionista_fields = ["Nombre", "Sexo", "Nacionalidad", "Ocupación", "Estado civil", "Cédula", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "No Acciones", "Cargo"]
     
     info = ft.Column(
         controls=[
@@ -174,6 +220,39 @@ def constituve_act_form(page: ft.Page):
                         ]
                 )
     
+    
+    def lista_con_y(lista):
+        if len(lista) > 2:
+            return ", ".join(lista[:-1]) + " y " + lista[-1]
+        elif len(lista) == 2:
+            return " y ".join(lista)
+        elif lista:
+            return lista[0]
+        else:
+            return ""
+
+    
+    def es_venezolano(nac):
+        return nac.strip().lower().startswith("vene")
+
+    nombres_lista = [a["Nombre"] for a in accionistas]
+
+    cedulas_lista = [
+        f"{'V' if es_venezolano(a['Nacionalidad']) else 'E'}-{a['Cédula']}"
+        for a in accionistas
+    ]
+
+    rif_lista = [
+        a["RIF"] if a["RIF"].startswith("J-") else f"J-{a['RIF']}"
+        for a in accionistas
+    ]# evita duplicar J-
+
+    
+    nombres = lista_con_y(nombres_lista)
+    cedulas = lista_con_y(cedulas_lista)
+    rif = lista_con_y(rif_lista)
+
+    
     def generate_act(e):
         
         # if len(accionistas_table.rows) < 2:
@@ -187,11 +266,20 @@ def constituve_act_form(page: ft.Page):
                 print("Presentante seleccionado:", persona)
                 break
         
-        try:           
-            ruta_contrato = generate_constitutive_act(accionistas, p_data)
-            print("contrato generado en: ", ruta_contrato)
-        except Exception as ex:
-            print(f"Error: {str(ex)}")
+        
+        texto = f"{nombres}"
+        
+        print(f"Los accionistas son {texto}.")
+        print("de nacionalidad", normalizar_nacionalidad(accionistas))
+        print(normalizar_ocupaciones(accionistas))
+        print("de estado civil ", normalizar_estados_civiles(accionistas))
+        print(imprimir_domicilios_unicos(accionistas))
+        print(f"titulares de cedula de identidad personal numero: {cedulas} y registro de informacion fiscal {rif}")
+        # try:           
+        #     ruta_contrato = generate_constitutive_act(accionistas, p_data)
+        #     print("contrato generado en: ", ruta_contrato)
+        # except Exception as ex:
+        #     print(f"Error: {str(ex)}")
         
         
         

@@ -11,11 +11,16 @@ def create_input(titulo: None, label, lista):
     label_lower = label.lower()
 
     # Dropdowns
-    if label_lower in ["estado civil", "razón", "trimestre referido"]:
+    if label_lower in ["sexo", "nacionalidad", "estado civil", "razón", "trimestre referido", "cargo"]:
         options_dict = {
+            "sexo": ["Masculino", "Femenino"],
+            "nacionalidad": ["Venezolano", "Portugués", "Italiano", "Árabe", "Libanés", "Chino", "Turco", "Español", "Alemán", "Francés"],
             "estado civil": ["Soltero/a", "Casado/a", "Divorciado/a", "Viudo/a"],
             "Tipo de Inmueble": ["Edificio", "Casa", "Apartamento", "Terreno", "Local Comercial"],
-            "trimestre referido": ["Primer", "Segundo", "Tercer", "Cuarto"]
+            "trimestre referido": ["Primer", "Segundo", "Tercer", "Cuarto"],
+            "cargo": ["Presidente", "Vicepresidente", "Secretario","Tesorero", "Miembro", "Suplente", "Director General", "Director Administrativo","Director Ejecutivo", "Gerente General", "Gerente Administrativo", "Gerente de Finanzas", "Gerente de Operaciones", "Asesor Legal", "Asesor Financiero", "Comisario", "Auditor Interno", "Vocal","Representante Legal", "Socio Fundador", "Consejero", "Otro (Especificar en el documento)"
+        ]
+
         }
 
         dropdown = ft.Dropdown(
@@ -30,6 +35,11 @@ def create_input(titulo: None, label, lista):
             text_size=16,
             on_change=_move_focus,
         )
+        
+        if label_lower == "sexo":
+            dropdown.value = options_dict["sexo"][0]
+        if label_lower == "nacionalidad":
+            dropdown.value = options_dict["nacionalidad"][0] 
         input_list.append(dropdown)
         if isinstance(lista, dict):
             lista[label] = dropdown
@@ -66,25 +76,6 @@ def create_input(titulo: None, label, lista):
         tf = ft.TextField(
             label=label,
             value= "comerciante",
-            filled=True,
-            expand=True,
-            border_radius=8,
-            border_width=0,
-            border_color="transparent",
-            focused_border_width=0,
-            text_size=16,
-            on_submit=_move_focus,
-        )
-        input_list.append(tf)
-        if isinstance(lista, dict):
-            lista[label] = tf
-        elif isinstance(lista, list):
-            lista.append(tf)
-        return tf
-    if label_lower == "nacionalidad":
-        tf = ft.TextField(
-            label=label,
-            value="venezolano/a",
             filled=True,
             expand=True,
             border_radius=8,

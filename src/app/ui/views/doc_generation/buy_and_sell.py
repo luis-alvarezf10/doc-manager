@@ -85,15 +85,13 @@ def buy_and_sell_form(page: ft.Page):
             ], spacing=15)
 
     vendedor_campos = [
-        "Nombre", "Nacionalidad", "Ocupación", "Estado civil",
+        "Nombre", "Sexo", "Nacionalidad", "Ocupación", "Estado civil",
         "Cédula", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)"
     ]
 
     comprador_campos = [
-        "Nombre", "Nacionalidad", "Estado civil", 
-        "Cédula",  
-        "RIF",
-        "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)"
+        "Nombre", "Sexo", "Nacionalidad", "Estado civil", 
+        "Cédula", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)"
     ]
 
     inmueble_campos = [
