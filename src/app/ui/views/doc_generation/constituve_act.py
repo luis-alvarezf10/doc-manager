@@ -1,62 +1,32 @@
 import flet as ft
-from src.app.ui.widgets.input_form import create_input
+from src.app.ui.widgets.input_form import create_input, clear_input_list
 from src.app.ui.widgets.info_selected_mode import info_text
 from src.app.ui.widgets.gradient_button import gradient_button
 from src.utils.colors import main_gradient_color, grey
 from src.documents.constitutive_act import generate_constitutive_act
-from src.app.functions.normalizar import normalizar_nacionalidad, normalizar_ocupaciones, normalizar_estados_civiles, imprimir_domicilios_unicos
+from src.app.ui.widgets.show_snackbar import show_snackbar
 
 def constituve_act_form(page: ft.Page):
-    company = ["Nombre", "Dedicación", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "Duración","Capital de la compañía", "Años de función de accionistas"]
-    show_visible_columns = ["Nombre", "Cédula", "No Acciones", "Cargo"]
+    company = ["Nombre", "Dedicación", "RIF", "Ubicación", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "Duración","Capital", "Años de función de accionistas"]
+    show_visible_columns = ["Nombre", "No Acciones", "Cargo", "Acciones"]
 
-    # accionistas = []
-    accionistas = [
-        {
-            "Nombre": "Pedro Luis González",
-            "Sexo": "Masculino",
-            "Nacionalidad": "Líbanes",
-            "Ocupación": "Docente",
-            "Estado civil": "Casado",
-            "Cédula": "12345678",
-            "RIF": "12345678-9",
-            "Domicilio (Ciudad)": "Caracas",
-            "Domicilio (Municipio)": "Libertador",
-            "Domicilio (Estado)": "Distrito Capital",
-            "No Acciones": 150,
-            "Cargo": "Presidente"
-        },
-        {
-            "Nombre": "Luisa Fernanda Ríos",
-            "Sexo": "Femenino",
-            "Nacionalidad": "Líbanes",
-            "Ocupación": "Administradora",
-            "Estado civil": "Soltera",
-            "Cédula": "87654321",
-            "RIF": "87654321-0",
-            "Domicilio (Ciudad)": "Valencia",
-            "Domicilio (Municipio)": "Naguanagua",
-            "Domicilio (Estado)": "Carabobo",
-            "No Acciones": 100,
-            "Cargo": "Vicepresidenta"
-        },
-        {
-            "Nombre": "Ali Husseini",
-            "Sexo": "Masculino",
-            "Nacionalidad": "Venezolano",
-            "Ocupación": "Docente",
-            "Estado civil": "Casado",
-            "Cédula": "11223344",
-            "RIF": "11223344-5",
-            "Domicilio (Ciudad)": "Caracas",
-            "Domicilio (Municipio)": "Libertador",
-            "Domicilio (Estado)": "Distrito Capital",
-            "No Acciones": 80,
-            "Cargo": "Tesorero"
-        }
-    ]
+    accionistas = []
 
     accionista_fields = ["Nombre", "Sexo", "Nacionalidad", "Ocupación", "Estado civil", "Cédula", "RIF", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "No Acciones", "Cargo"]
+    
+    comisario_fields = ["Nombre", "Sexo", "Cédula", "Nacionalidad", "No de Colegio", "Años de función"]
+    comisario = {}
+    
+    input_filename = ft.TextField(
+        label="Nombre del archivo", 
+        filled=True, 
+        expand=True, 
+        border_radius=8,                           
+        border_width=0,      
+        border_color="transparent", 
+        focused_border_width=0,  
+        text_size=16,     
+    )
     
     info = ft.Column(
         controls=[
@@ -64,14 +34,18 @@ def constituve_act_form(page: ft.Page):
             info_text(text="1. Completa los campos Requeridos de información de empresa."),
             info_text(text="2. Elige el nombre del presentante de Acta"),
             info_text(text="3. Agrega los accionistas de la empresa."),
-            info_text(text="4. Haz clic en 'Generar Acta' para crear el documento."),
-            info_text(text="5. El documento se guardará con el nombre especificado o con el nombre de la empresa en la carpeta de -> Documentos Generados -> Actas Constitutivas")
+            info_text(text="4. No te preocupes si no sabes realmente el costo de la acciones, ni la distribución de total invertido por los accionistas el sistema lo hará de manera automática sin necesidad de sacar calculos, unicamente es necesario el capital total de la empresa y el número de acciones."),
+            info_text(text="5. Haz clic en 'Generar Acta' para crear el documento."),
+            info_text(text="6. Revisa detalladamente el documento para evitar errores de escritura, si hubo porfavor es necesario que lo notifiques en el apartado de reportes para una breve mejoría en el sistema"),
+            info_text(text="7. El documento se guardará con el nombre especificado o con el nombre de la empresa en la carpeta de -> Documentos Generados -> Actas Constitutivas"), 
+            input_filename
         ],
         width=800
     )
     company_inputs = {}
     accionista_inputs = {}
 
+    
     def create_section(title, person, target_dict):
         return ft.Column(
             controls=[
@@ -123,26 +97,69 @@ def constituve_act_form(page: ft.Page):
             return
 
         accionistas.append(a_data.copy())
-        print("Total accionistas:", len(accionistas))  # <- Aquí
         update_table()
         update_total_acciones()
         clear_fields()
+        page.open(show_snackbar(content=f"Agregado nuevo accionista satisfactoriamente", type="success"))       
+
+    def delete_accionista(index):
+        def _delete(e):
+            accionistas.pop(index)
+            update_table()
+            update_total_acciones()
+        return _delete
+    
+    def view_accionista(accionista):
+        def _view(e):
+            # Crear diálogo con información del accionista
+            dialog = ft.AlertDialog(
+                title=ft.Text(f"Información de {accionista['Nombre']}"),
+                content=ft.Column([
+                    ft.Text(f"Cédula: {accionista['Cédula']}"),
+                    ft.Text(f"RIF: {accionista['RIF']}"),
+                    ft.Text(f"Sexo: {accionista['Sexo']}"),
+                    ft.Text(f"Estado civil: {accionista['Estado civil']}"),
+                    ft.Text(f"Nacionalidad: {accionista['Nacionalidad']}"),
+                    ft.Text(f"Ocupación: {accionista['Ocupación']}"),
+                    ft.Text(f"Domicilio: {accionista['Domicilio (Ciudad)']}, {accionista['Domicilio (Municipio)']}, {accionista['Domicilio (Estado)']}"),
+                    ft.Text(f"No Acciones: {accionista['No Acciones']}"),
+                    ft.Text(f"Cargo: {accionista['Cargo']}")
+                ], tight=True),
+                actions=[ft.TextButton("Cerrar", on_click=lambda e: page.close(dialog))]
+            )
+            page.open(dialog)
+        return _view
 
     def update_table():
         accionistas_table.rows.clear()
-        for accionista in accionistas:
-            accionistas_table.rows.append(
-                ft.DataRow(
-                    cells=[
-                        ft.DataCell(ft.Text(accionista.get(col, ""))) for col in show_visible_columns
-                    ]
+        for i, accionista in enumerate(accionistas):
+            # Crear celdas para las columnas visibles (excluyendo "Acciones")
+            cells = [ft.DataCell(ft.Text(accionista.get(col, ""))) for col in show_visible_columns[:-1]]
+            
+            # Agregar celda con botones de acción
+            action_buttons = ft.Row([
+                ft.IconButton(
+                    icon=ft.Icons.VISIBILITY,
+                    tooltip="Ver detalles",
+                    on_click=view_accionista(accionista)
+                ),
+                ft.IconButton(
+                    icon=ft.Icons.DELETE,
+                    tooltip="Eliminar",
+                    icon_color=ft.Colors.RED,
+                    on_click=delete_accionista(i)
                 )
-            )
-        page.update()
+            ], spacing=5)
+            
+            cells.append(ft.DataCell(action_buttons))
+            
+            accionistas_table.rows.append(ft.DataRow(cells=cells))
+        accionistas_table.update()
 
 
     def clear_fields():
         accionista_inputs.clear()
+        clear_input_list()  # Limpiar la lista global de inputs
 
         # Crear nuevo formulario (nueva instancia)
         new_controls = [
@@ -174,6 +191,7 @@ def constituve_act_form(page: ft.Page):
     
     presentantes_data = [
         {"nombre": "Pedro Luis Álvarez Farías", 
+         "sexo": "Masculino",
          "nacionalidad": "venezolano", 
          "ocupacion": "abogado",
          "estado civil": "casado",
@@ -184,6 +202,7 @@ def constituve_act_form(page: ft.Page):
          "estado": "Anzoátegui"
         },
         {"nombre": "Marianela Del Valle Franceschi Chacín De Álvarez", 
+         "sexo": "Femenino",
          "nacionalidad": "venezolana", 
          "ocupacion": "docente",     
          "estado civil": "casada",
@@ -220,44 +239,12 @@ def constituve_act_form(page: ft.Page):
                         ]
                 )
     
-    
-    def lista_con_y(lista):
-        if len(lista) > 2:
-            return ", ".join(lista[:-1]) + " y " + lista[-1]
-        elif len(lista) == 2:
-            return " y ".join(lista)
-        elif lista:
-            return lista[0]
-        else:
-            return ""
-
-    
-    def es_venezolano(nac):
-        return nac.strip().lower().startswith("vene")
-
-    nombres_lista = [a["Nombre"] for a in accionistas]
-
-    cedulas_lista = [
-        f"{'V' if es_venezolano(a['Nacionalidad']) else 'E'}-{a['Cédula']}"
-        for a in accionistas
-    ]
-
-    rif_lista = [
-        a["RIF"] if a["RIF"].startswith("J-") else f"J-{a['RIF']}"
-        for a in accionistas
-    ]# evita duplicar J-
-
-    
-    nombres = lista_con_y(nombres_lista)
-    cedulas = lista_con_y(cedulas_lista)
-    rif = lista_con_y(rif_lista)
-
-    
     def generate_act(e):
         
-        # if len(accionistas_table.rows) < 2:
-        #     print("No hay accionistas")
-        #     return
+        if len(accionistas) < 2:
+            page.open(show_snackbar(content="Debes agregar al menos 2 accionistas", type="error"))
+            return
+        
         presentante_seleccionado = presentante.value
         p_data = None
         for persona in presentantes_data:
@@ -265,23 +252,23 @@ def constituve_act_form(page: ft.Page):
                 p_data = persona
                 print("Presentante seleccionado:", persona)
                 break
+    
+        # Extraer valores de los TextField
+        empresa_data = {k: v.value for k, v in company_inputs.items()}
+        comisario_data = {k: v.value for k, v in comisario.items()}
         
-        
-        texto = f"{nombres}"
-        
-        print(f"Los accionistas son {texto}.")
-        print("de nacionalidad", normalizar_nacionalidad(accionistas))
-        print(normalizar_ocupaciones(accionistas))
-        print("de estado civil ", normalizar_estados_civiles(accionistas))
-        print(imprimir_domicilios_unicos(accionistas))
-        print(f"titulares de cedula de identidad personal numero: {cedulas} y registro de informacion fiscal {rif}")
-        # try:           
-        #     ruta_contrato = generate_constitutive_act(accionistas, p_data)
-        #     print("contrato generado en: ", ruta_contrato)
-        # except Exception as ex:
-        #     print(f"Error: {str(ex)}")
-        
-        
+        try:           
+            ruta_contrato = generate_constitutive_act(
+                accionistas, 
+                p_data, 
+                empresa_data, 
+                acciones_total_text.value, 
+                comisario_data,
+                input_filename.value,
+                )
+            page.open(show_snackbar(content=f"Acta Constitutiva generada con éxito en {ruta_contrato}", type="success"))    
+        except Exception as ex:
+            page.open(show_snackbar(content=f"Error al generar el acta: {ex}", type="error"))       
         
         page.update()
     
@@ -292,10 +279,11 @@ def constituve_act_form(page: ft.Page):
             ft.Container(
                 content= ft.Column(
                     controls= [  
-                    create_section("Datos de la empresa", company, company_inputs),
-                    ft.Divider(),
-                    ft.Text("Nombre de Presentante", style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),
-                    presentante
+                        create_section("Datos de la empresa", company, company_inputs),
+                        ft.Divider(),
+                        ft.Text("Nombre de Presentante", style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),
+                        presentante,
+                        create_section("Datos de Comisario", comisario_fields, comisario),
                     ],
                     
                     ),

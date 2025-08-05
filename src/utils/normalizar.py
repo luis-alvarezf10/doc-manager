@@ -213,6 +213,96 @@ def es_venezolano(nac):
     return nac.strip().lower().startswith("vene")
 
 
+def normalizar_acciones(accionistas, nomina):
+    """Normaliza la descripción de acciones suscritas por cada accionista"""
+    from src.utils.convert_to_letters import number_to_letters
+    
+    descripciones = []
+    
+    for i, accionista in enumerate(accionistas):
+        nombre = accionista["Nombre"].upper()
+        no_acciones = int(accionista["No Acciones"])
+        valor_total = nomina * no_acciones
+        
+        # Convertir número de acciones a letras
+        try:
+            acciones_letras = number_to_letters(no_acciones, incluir_moneda=False)
+            valor_total_text = number_to_letters(valor_total)
+        except:
+            acciones_letras = "[Error al convertir]"
+        
+        base = f"{nombre}, ha suscrito y pagado {acciones_letras} ({no_acciones}) acciones, por un valor de {valor_total_text} (Bs. {valor_total:.2f})"
+        # Formato según posición
+        if i == 0:
+            descripcion = base
+        else:
+            descripcion = f"el socio: {base}" 
+            
+        descripciones.append(descripcion)
+    
+    return "; ".join(descripciones) + "."
+
+def pluralizar_cargo(cargo):
+    """Pluraliza un cargo individual"""
+    cargo_lower = cargo.lower()
+    
+    plurales = {
+        "presidente": "presidentes",
+        "vicepresidente": "vicepresidentes", 
+        "secretario": "secretarios",
+        "tesorero": "tesoreros",
+        "miembro": "miembros",
+        "suplente": "suplentes",
+        "director general": "directores generales",
+        "director administrativo": "directores administrativos",
+        "director ejecutivo": "directores ejecutivos",
+        "gerente general": "gerentes generales",
+        "gerente administrativo": "gerentes administrativos",
+        "gerente de finanzas": "gerentes de finanzas",
+        "gerente de operaciones": "gerentes de operaciones",
+        "asesor legal": "asesores legales",
+        "asesor financiero": "asesores financieros",
+        "comisario": "comisarios",
+        "auditor interno": "auditores internos",
+        "vocal": "vocales",
+        "representante legal": "representantes legales",
+        "socio fundador": "socios fundadores",
+        "consejero": "consejeros"
+    }
+    
+    return plurales.get(cargo_lower, cargo + "s").upper()
+
+def normalizar_cargos(accionistas):
+    """Normaliza los cargos de los accionistas"""
+    from src.utils.convert_to_letters import number_to_letters
+    
+    cargos = {}
+    for a in accionistas:
+        cargo = a["Cargo"].strip()
+        if cargo not in cargos:
+            cargos[cargo] = 0
+        cargos[cargo] += 1
+    
+    # Obtener el cargo más común
+    if cargos:
+        cargo_principal = max(cargos, key=cargos.get)
+        cargo_plural = pluralizar_cargo(cargo_principal)
+    else:
+        cargo_plural = "DIRECTORES GENERALES"
+    
+    cantidad = len(accionistas)
+    
+    try:
+        cantidad_letras = number_to_letters(cantidad, incluir_moneda=False)
+    except:
+        cantidad_letras = "[Error]"
+    
+    return {
+        "cantidad": cantidad,
+        "cantidad_letras": cantidad_letras,
+        "cargo_principal": cargo_plural
+    }
+
 def normalizar(accionistas):
     """Función principal que normaliza nacionalidades y ocupaciones de accionistas"""
     nacionalidades = normalizar_nacionalidad(accionistas)

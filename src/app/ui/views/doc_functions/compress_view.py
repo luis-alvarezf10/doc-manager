@@ -191,10 +191,9 @@ def compress_view(page: ft.Page, back_callback=None):
         results_container.controls.clear()
         page.update()
 
-        # Guardar en PLAF_system
-        desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-        plaf_system_path = os.path.join(desktop_path, "PLAF_system")
-        output_dir = os.path.join(plaf_system_path, "PDFs_comprimidos")
+        desktop_path = os.path.join(os.path.expanduser("~"), "Documents")
+        plaf_system_path = os.path.join(desktop_path, "Axiology Document Manager")
+        output_dir = os.path.join(plaf_system_path, "PDFs Comprimidos")
         os.makedirs(output_dir, exist_ok=True)
 
         compressed_count = 0
@@ -204,7 +203,7 @@ def compress_view(page: ft.Page, back_callback=None):
         for file in files:
             input_path = file.path
             file_name_without_ext = os.path.splitext(file.name)[0]
-            output_path = os.path.join(output_dir, f"{file_name_without_ext}_compressed.pdf")
+            output_path = os.path.join(output_dir, f"{file_name_without_ext}_comprimido.pdf")
 
             try:
                 reader = PdfReader(input_path)

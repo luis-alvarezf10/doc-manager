@@ -98,9 +98,9 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
                 pdf_name += ".pdf"
             
             # Crear carpeta PDFs_unificados en PLAF_system
-            desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-            plaf_system_path = os.path.join(desktop_path, "PLAF_system")
-            output_dir = os.path.join(plaf_system_path, "PDFs_unificados")
+            desktop_path = os.path.join(os.path.expanduser("~"), "Documents")
+            plaf_system_path = os.path.join(desktop_path, "Axiology Document Manager")
+            output_dir = os.path.join(plaf_system_path, "PDFs Unificados")
             os.makedirs(output_dir, exist_ok=True)
             
             output_path = os.path.join(output_dir, pdf_name)

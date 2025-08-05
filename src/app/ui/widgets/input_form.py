@@ -1,12 +1,24 @@
 import flet as ft
 
 input_list = []
+
+def clear_input_list():
+    """Limpia la lista global de inputs"""
+    global input_list
+    input_list.clear()
+
 def create_input(titulo: None, label, lista):
     def _move_focus(e):
-        current_index = next((i for i, control in enumerate(input_list) if control == e.control), -1)
-        if current_index != -1 and current_index + 1 < len(input_list):
-            input_list[current_index + 1].focus()
-        e.page.update()
+        try:
+            current_index = next((i for i, control in enumerate(input_list) if control == e.control), -1)
+            if current_index != -1 and current_index + 1 < len(input_list):
+                next_control = input_list[current_index + 1]
+                if hasattr(next_control, 'page') and next_control.page is not None:
+                    next_control.focus()
+            e.page.update()
+        except (AssertionError, AttributeError):
+            # Ignorar errores de focus cuando el control no está en la página
+            pass
 
     label_lower = label.lower()
 
