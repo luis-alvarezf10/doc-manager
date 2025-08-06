@@ -3,11 +3,12 @@ from datetime import datetime
 from src.documents.buy_and_sell_doc import generate_buy_and_sell_doc
 from src.utils.datestr import fecha_a_formato_legal
 
-from src.utils.colors import dark_grey, main_gradient_color
+from src.utils.colors import main_gradient_color
 from src.app.ui.widgets.gradient_button import gradient_button
 from src.app.ui.widgets.input_form import create_input, input_list
 from src.app.ui.widgets.info_selected_mode import info_text
 from src.app.ui.widgets.show_snackbar import show_snackbar
+from src.app.ui.widgets.action_button import action_button
 
 def buy_and_sell_form(page: ft.Page):
     vendedor_fields = []
@@ -39,21 +40,10 @@ def buy_and_sell_form(page: ft.Page):
         date_picker.open = True
         page.update()
 
-    datetime_button = ft.ElevatedButton(
-                        text= "Seleccionar fecha",
-                        icon=ft.Icons.CALENDAR_MONTH,
-                        on_click=open_date_picker,
-                        bgcolor= ft.Colors.ORANGE,
-                        color=ft.Colors.WHITE,
-                        width=200,
-                        height=40,
-                        style=ft.ButtonStyle(
-                            text_style=ft.TextStyle(
-                            size=16, 
-                            weight="bold",
-                            ),
-                            shape=ft.RoundedRectangleBorder(radius=10),
-                        )
+    datetime_button = action_button(
+        text="Seleccionar Fecha",
+        icon=ft.Icons.CALENDAR_MONTH,
+        on_click=open_date_picker
     )
 
 

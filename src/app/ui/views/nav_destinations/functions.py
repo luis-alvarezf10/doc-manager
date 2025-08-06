@@ -14,7 +14,7 @@ def functions_page(page: ft.Page, change_content_callback=None):
 
     actions = [
         ("Generacion de documento", document_generation_view),
-        ("Juntar PDFs", pdf_convert_view),
+        ("Unir PDFs", pdf_convert_view),
         ("Comprimir archivo", compress_view),
     ]
 

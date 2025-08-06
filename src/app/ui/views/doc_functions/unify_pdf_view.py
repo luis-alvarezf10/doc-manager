@@ -1,6 +1,12 @@
 import flet as ft
 from src.utils.colors import *
 from src.app.ui.widgets.custom_app_bar import custom_app_bar
+from src.app.ui.widgets.info_selected_mode import info_text
+from src.app.ui.widgets.show_snackbar import show_snackbar
+from src.app.ui.widgets.action_button import action_button
+from src.app.ui.widgets.gradient_button import gradient_button
+from src.utils.colors import main_gradient_color
+from src.app.ui.widgets.show_snackbar import show_snackbar
 from PyPDF2 import PdfMerger
 import os
 
@@ -10,8 +16,19 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
             back_callback()
     
     app_bar = custom_app_bar(
-        text="Convertir PDF",
+        text="Unir PDFs",
         on_click=handle_close
+    )
+    
+    info = ft.Column(
+        controls=[
+            ft.Text("Selecciona archivos PDF para unificar", size=20, weight=ft.FontWeight.BOLD),
+            info_text(text="1. Click al boton Seleccionar PDF"),
+            info_text(text="2. Selecciona los archivos PDF que deseas unir"),
+            info_text(text="3. Click en el boton Unir PDFs"),
+            info_text(text="4. El archivo PDF resultante se guardará en la carpeta de -> PDFs Unificados"),
+        ],
+        width=800
     )
     
     def pick_files_result(e: ft.FilePickerResultEvent):
@@ -23,42 +40,58 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
                     if not any(f.path == new_file.path for f in selected_pdf_files):
                         selected_pdf_files.append(new_file)
                 update_pdf_list()
-                status_text.value = ""
             else:
-                status_text.value = "Ningún archivo PDF válido seleccionado."
+                page.open(show_snackbar(content="No se encontraron archivos PDF válidos", type="error"))
         else:
-            status_text.value = "Selección de archivos cancelada."
+            page.open(show_snackbar(content="No se seleccionaron archivos", type="error"))
         page.update()
     
     def update_pdf_list():
         pdf_list.controls.clear()
-        for i, file in enumerate(selected_pdf_files):
+        
+        if not selected_pdf_files:
             pdf_list.controls.append(
-                ft.Card(
-                    content=ft.Container(
-                        content=ft.Row([
-                            ft.Icon(ft.Icons.PICTURE_AS_PDF, color="red"),
-                            ft.Text(file.name, expand=True),
-                            ft.IconButton(
-                                icon=ft.Icons.ARROW_UPWARD,
-                                on_click=lambda e, idx=i: move_file_up(idx),
-                                disabled=i == 0
-                            ),
-                            ft.IconButton(
-                                icon=ft.Icons.ARROW_DOWNWARD,
-                                on_click=lambda e, idx=i: move_file_down(idx),
-                                disabled=i == len(selected_pdf_files) - 1
-                            ),
-                            ft.IconButton(
-                                icon=ft.Icons.DELETE,
-                                on_click=lambda e, idx=i: remove_file(idx),
-                                icon_color="red"
-                            )
-                        ]),
-                        padding=10
-                    )
+                ft.Container(
+                    content=ft.Text(
+                        "Sin archivos seleccionados actualmente",
+                        text_align=ft.TextAlign.CENTER,
+                        color=ft.Colors.GREY_600,
+                        size=16
+                    ),
+                    expand=True,
+                    alignment=ft.alignment.center,
+                    padding=20
                 )
             )
+        else:
+            for i, file in enumerate(selected_pdf_files):
+                pdf_list.controls.append(
+                    ft.Card(
+                        content=ft.Container(
+                            content=ft.Row([
+                                ft.Icon(ft.Icons.PICTURE_AS_PDF, color="red"),
+                                ft.Text(file.name, expand=True, size=16),
+                                ft.IconButton(
+                                    icon=ft.Icons.ARROW_UPWARD,
+                                    on_click=lambda e, idx=i: move_file_up(idx),
+                                    disabled=i == 0
+                                ),
+                                ft.IconButton(
+                                    icon=ft.Icons.ARROW_DOWNWARD,
+                                    on_click=lambda e, idx=i: move_file_down(idx),
+                                    disabled=i == len(selected_pdf_files) - 1
+                                ),
+                                ft.IconButton(
+                                    icon=ft.Icons.DELETE,
+                                    on_click=lambda e, idx=i: remove_file(idx),
+                                    icon_color="red"
+                                )
+                            ]),
+                            padding=10
+                        )
+                    )
+                )
+        
         merge_button.disabled = len(selected_pdf_files) < 2
         page.update()
     
@@ -78,13 +111,11 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
     
     def merge_pdfs(e):
         if len(selected_pdf_files) < 2:
-            status_text.value = "Selecciona al menos 2 archivos PDF"
-            page.update()
+            page.open(show_snackbar(content="Selecciona al menos 2 archivos PDF", type="error"))
             return
         
         progress.visible = True
         merge_button.disabled = True
-        status_text.value = "Unificando PDFs..."
         page.update()
         
         try:
@@ -99,8 +130,8 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
             
             # Crear carpeta PDFs_unificados en PLAF_system
             desktop_path = os.path.join(os.path.expanduser("~"), "Documents")
-            plaf_system_path = os.path.join(desktop_path, "Axiology Document Manager")
-            output_dir = os.path.join(plaf_system_path, "PDFs Unificados")
+            manager_path = os.path.join(desktop_path, "Axiology Document Manager")
+            output_dir = os.path.join(manager_path, "PDFs Unificados")
             os.makedirs(output_dir, exist_ok=True)
             
             output_path = os.path.join(output_dir, pdf_name)
@@ -110,13 +141,9 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
             
             nonlocal output_folder_path
             output_folder_path = output_dir
-            status_text.value = f"PDF unificado guardado en: {output_path}"
-            status_text.color = "green"
-            open_output_folder_button.visible = True
+            page.open(show_snackbar(content=f"PDF unificado guardado en: {output_path}", type="success"))
         except Exception as ex:
-            status_text.value = f"Error al unificar PDFs: {str(ex)}"
-            status_text.color = "red"
-            open_output_folder_button.visible = False
+            page.open(show_snackbar(content=f"Error al unificar PDFs: {str(ex)}", type="error"))
         finally:
             progress.visible = False
             merge_button.disabled = False
@@ -124,8 +151,6 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
     
     selected_pdf_files = []
     output_folder_path = None
-    
-    status_text = ft.Text("", size=14)
     
     progress = ft.ProgressRing(
         visible=False,
@@ -138,86 +163,68 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
     file_picker = ft.FilePicker(on_result=pick_files_result)
     page.overlay.append(file_picker)
     
-    pick_files_button = ft.ElevatedButton(
-        text="Seleccionar archivos PDF",
-        bgcolor=dark_grey,
-        color="white",
-        icon=ft.Icons.UPLOAD_FILE,
+    pick_files_button = action_button(
+        text="Seleccionar PDF",
+        icon=ft.Icons.FOLDER_OPEN,
         on_click=lambda _: file_picker.pick_files(
             allow_multiple=True,
             allowed_extensions=["pdf"]
         )
     )
     
-    name_pdf = ft.TextField(label="Nombre de nuevo PDF",
-                            border_radius=20,
-                            border_color=grey)
+    name_pdf = ft.TextField(
+            label="Nombre de nuevo PDF",
+            filled=True,
+            width=400,
+            border_radius=8,
+            border_width=0,
+            border_color="transparent",
+            focused_border_width=0,
+            text_size=16,
+    )
     
     first_step = ft.Row(
         controls= [
             pick_files_button,
             name_pdf
-        ]
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        spacing=20
     )
     
-    merge_button = ft.ElevatedButton(
-        text="Unificar PDFs",
-        bgcolor="green",
-        color="white",
-        icon=ft.Icons.MERGE,
-        disabled=True,
-        on_click=merge_pdfs
+    merge_button = gradient_button(
+        text="Unir PDFs",
+        width=200,
+        height=40,
+        gradient=main_gradient_color,
+        on_click=merge_pdfs,
     )
     
-    def open_folder(e):
-        try:
-            print(f"Intentando abrir: {output_folder_path}")
-            if output_folder_path and os.path.exists(output_folder_path):
-                os.startfile(output_folder_path)
-                status_text.value = "Carpeta abierta correctamente"
-                status_text.color = "blue"
-            else:
-                status_text.value = "La carpeta no existe"
-                status_text.color = "red"
-        except Exception as ex:
-            status_text.value = f"Error al abrir carpeta: {str(ex)}"
-            status_text.color = "red"
-        page.update()
-    
-    open_output_folder_button = ft.ElevatedButton(
-        text="Abrir carpeta de salida",
-        bgcolor=blue,
-        color=white,
-        icon=ft.Icons.FOLDER_OPEN,
-        visible=False,
-        on_click=open_folder
-    )
-    
+    # Mostrar mensaje inicial después de definir merge_button
+    update_pdf_list()
     return ft.Column(
         controls=[
             app_bar,
-            ft.Container(
-                content=ft.Column([
-                    ft.Text("Selecciona archivos PDF para unificar", size=20, weight=ft.FontWeight.BOLD),
-                    ft.Divider(),
-                    first_step,
-                    ft.Container(
-                        content=pdf_list,
-                        height=300,
-                        border=ft.border.all(1, ft.Colors.GREY_400),
-                        border_radius=8,
-                        padding=10
-                    ),
-                    ft.Row([
-                        merge_button,
-                        progress
-                    ], alignment=ft.MainAxisAlignment.CENTER),
-                    status_text,
-                    open_output_folder_button
-                ], spacing=20),
-                padding=20,
-                expand=True
-            )
+            ft.Column([
+                info,
+                ft.Divider(),
+                first_step,
+                ft.Container(
+                    content=pdf_list,
+                    padding=10
+                ),
+                ft.Divider(),
+                ft.Row([
+                    merge_button,
+                    progress
+                ], 
+                alignment=ft.MainAxisAlignment.CENTER,
+                )
+            ], 
+            spacing=20,
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,   
+            ),
         ],
         scroll=ft.ScrollMode.AUTO,
         expand=True

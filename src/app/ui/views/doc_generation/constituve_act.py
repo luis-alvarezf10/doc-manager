@@ -5,6 +5,7 @@ from src.app.ui.widgets.gradient_button import gradient_button
 from src.utils.colors import main_gradient_color, grey
 from src.documents.constitutive_act import generate_constitutive_act
 from src.app.ui.widgets.show_snackbar import show_snackbar
+from src.app.ui.widgets.action_button import action_button
 
 def constituve_act_form(page: ft.Page):
     company = ["Nombre", "Dedicación", "RIF", "Ubicación", "Domicilio (Ciudad)", "Domicilio (Municipio)", "Domicilio (Estado)", "Duración","Capital", "Años de función de accionistas"]
@@ -172,12 +173,11 @@ def constituve_act_form(page: ft.Page):
             
         page.update()
         
-    add_accionista_btn = ft.ElevatedButton(
-        text="Agregar Accionista",
-        bgcolor="blue",
-        color="white",
-        icon=ft.Icons.PERSON_ADD,
-        on_click=add_accionista,
+    add_accionista_btn = action_button(
+        text= "Agregar Accionista",
+        icon= ft.Icons.ADD,
+        on_click= add_accionista,
+        bgcolor= ft.Colors.GREEN,
     )
     
     accionista_form = ft.Column(
