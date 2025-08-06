@@ -43,7 +43,7 @@ def document_generation_view(page: ft.Page, back_callback: callable = None) -> f
     buttons = [
         ("Compra Venta", buy_and_sell_form(page)),
         ("Constitutivo", constituve_act_form(page)),
-        ("Trabajo", "Contrato: Trabajo")
+        ("Trabajo", "Contraro de trabajo: PROXIMAMENTE...")
     ]
 
     menu = ft.Row(

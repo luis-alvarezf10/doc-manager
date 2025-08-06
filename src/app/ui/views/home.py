@@ -33,9 +33,9 @@ class HomeView(ft.View):
         self.views = {
             0: lambda: self.get_or_create("functions_view", lambda: functions_page(self.page, self.change_content)),
             1: lambda: self.create_folder_view(),
-            2: lambda: self.get_or_create("lan_chat_view", self.init_chat_view),
-            3: lambda: self.get_or_create("bcv_view", lambda: create_bcv_view(self.page)),
-            4: lambda: self.get_or_create("reports_view", lambda: create_reports_view(self.page)),
+            2: lambda: self.get_or_create("bcv_view", lambda: create_bcv_view(self.page)),
+            3: lambda: self.get_or_create("reports_view", lambda: create_reports_view(self.page)),
+            # 2: lambda: self.get_or_create("lan_chat_view", self.init_chat_view),
         }
 
         self.is_dark = self.page.platform_brightness == ft.Brightness.DARK
@@ -78,11 +78,11 @@ class HomeView(ft.View):
                     selected_icon=ft.Icons.FOLDER,
                     label="Carpeta",
                 ),
-                ft.NavigationRailDestination(
-                    icon=ft.Icon(ft.Icons.CHAT_OUTLINED, color="white"),
-                    selected_icon=ft.Icons.CHAT,
-                    label="Chat LAN",
-                ),
+                # ft.NavigationRailDestination(
+                #     icon=ft.Icon(ft.Icons.CHAT_OUTLINED, color="white"),
+                #     selected_icon=ft.Icons.CHAT,
+                #     label="Chat LAN",
+                # ),
                 ft.NavigationRailDestination(
                     icon=ft.Icon(ft.Icons.MONETIZATION_ON_OUTLINED, color="white"),
                     selected_icon=ft.Icons.MONETIZATION_ON,
