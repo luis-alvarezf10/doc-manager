@@ -4,8 +4,8 @@ from src.utils.colors import grey, main_gradient_color
 from src.app.ui.widgets.gradient_text import gradient_text
 from src.app.ui.widgets.gradient_button import gradient_button
 from src.app.ui.views.doc_functions.document_generation import document_generation_view
-from src.app.ui.views.doc_functions.compress_view import compress_view
-from src.app.ui.views.doc_functions.unify_pdf_view import pdf_convert_view
+from src.app.ui.views.doc_functions.compress import compress_view
+from src.app.ui.views.doc_functions.unify_pdf import pdf_convert_view
 
 def functions_page(page: ft.Page, change_content_callback=None):
     def back_to_functions():
@@ -13,9 +13,9 @@ def functions_page(page: ft.Page, change_content_callback=None):
             change_content_callback(functions_page(page, change_content_callback))
 
     actions = [
-        ("Generacion de documento", document_generation_view),
+        ("Generar documentos", document_generation_view),
         ("Unir PDFs", pdf_convert_view),
-        ("Comprimir archivo", compress_view),
+        ("Comprimir PDFs", compress_view),
     ]
 
     def make_handler(view_func):

@@ -14,6 +14,11 @@ import fitz  # PyMuPDF
 
 from src.utils.colors import *
 from src.app.ui.widgets.custom_app_bar import custom_app_bar
+from src.app.ui.widgets.info_selected_mode import info_text
+from src.app.ui.widgets.action_button import action_button
+from src.app.ui.widgets.show_snackbar import show_snackbar
+from src.app.ui.widgets.gradient_button import gradient_button
+from src.utils.colors import main_gradient_color
 
 def compress_view(page: ft.Page, back_callback=None):
     def handle_close(e):
@@ -21,8 +26,19 @@ def compress_view(page: ft.Page, back_callback=None):
             back_callback()
     
     app_bar = custom_app_bar(
-        text="Comprimir Documento",
+        text="Comprimir Archivo PDF",
         on_click=handle_close
+    )
+    
+    info = ft.Column(
+        controls=[
+            ft.Text("Selecciona archivos PDF para comprimir", size=25, text_align=ft.TextAlign.CENTER, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),
+            info_text(text="1. Click al boton Seleccionar PDF"),
+            info_text(text="2. Selecciona los archivos PDF que deseas comprimir"),
+            info_text(text="3. Click en el boton Unir PDFs"),
+            info_text(text="4. El archivo PDF resultante se guardará en la carpeta de -> PDFs Coprimidos"),
+        ],
+        width=800
     )
     
     def pick_files_result(e: ft.FilePickerResultEvent):
@@ -37,33 +53,15 @@ def compress_view(page: ft.Page, back_callback=None):
                 
                 update_pdf_list()
                 status_text.value = ""
-            else:
-                status_text.value = "Ningún archivo PDF válido seleccionado."
         else:
-            status_text.value = "Selección de archivos cancelada."
+            page.open(show_snackbar(content="No se seleccionaron archivos", type="error"))
         page.update()
 
     # Lista de archivos seleccionados
     selected_pdf_files = []
     
     # Definir elementos de UI
-    pdf_list_container = ft.Column([], 
-                                   spacing=5,
-                                   scroll=ft.ScrollMode.AUTO,
-                                   )
-    preview_container = ft.Container(
-        content=ft.Column([
-            ft.Icon(ft.Icons.UPLOAD_FILE, size=60, color=ft.Colors.GREY_400),
-            ft.Text("Selecciona un PDF", size=12, text_align=ft.TextAlign.CENTER)
-        ], alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-        border=ft.border.all(1, ft.Colors.GREY_400),
-        border_radius=8,
-        padding=10,
-        width=200,
-        height=150,
-        alignment=ft.alignment.center
-    )
-    
+    pdf_list= ft.Column(scroll=ft.ScrollMode.AUTO)
     def get_file_size(file_path):
         try:
             size_bytes = os.path.getsize(file_path)
@@ -83,63 +81,53 @@ def compress_view(page: ft.Page, back_callback=None):
         page.update()
     
     def update_pdf_list():
-        pdf_list_container.controls.clear()
+        pdf_list.controls.clear()
         
         if not selected_pdf_files:
-            pdf_list_container.controls.append(
-                ft.Text("No hay archivos seleccionados", 
-                        size=14, 
-                        color=dark_grey)
+            pdf_list.controls.append(
+                 ft.Container(
+                    content=ft.Text(
+                        "Sin archivos seleccionados actualmente",
+                        text_align=ft.TextAlign.CENTER,
+                        color=ft.Colors.GREY_600,
+                        size=16
+                    ),
+                    expand=True,
+                    alignment=ft.alignment.center,
+                    padding=20
+                )
             )
             compress_button.disabled = True
-            preview_container.content = ft.Column([
-                ft.Icon(ft.Icons.UPLOAD_FILE, 
-                        size=60, 
-                        color=ft.Colors.GREY_400),
-                ft.Text("Selecciona un PDF", 
-                        size=12, 
-                        text_align=dark_grey)
-            ], 
-            alignment=ft.MainAxisAlignment.CENTER, 
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER)
         else:
-            for pdf_file in selected_pdf_files:
-                file_size = get_file_size(pdf_file.path)
-                file_row = ft.Container(
-                    content=ft.Row([
-                        ft.Icon(ft.Icons.PICTURE_AS_PDF, size=20, color=ft.Colors.RED_400),
-                        ft.Column([
-                            ft.Text(pdf_file.name, size=12, weight=ft.FontWeight.NORMAL),
-                            ft.Text(file_size, size=10, color=ft.Colors.GREY_600)
-                        ], spacing=2, expand=True),
-                        ft.IconButton(
-                            icon=ft.Icons.CLOSE,
-                            icon_size=16,
-                            icon_color=ft.Colors.RED,
-                            on_click=lambda e, file=pdf_file: remove_pdf_from_list(file),
-                            tooltip="Eliminar archivo"
+            for i, file in enumerate(selected_pdf_files):
+                file_size = get_file_size(file.path)
+                pdf_list.controls.append(
+                    ft.Card(
+                        ft.Container(
+                            content= ft.Row([
+                                ft.Text(f"{i+1}", weight=ft.FontWeight.BOLD, size=16),
+                                ft.Icon(ft.Icons.PICTURE_AS_PDF, color="red"),
+                                ft.Column([
+                                    ft.Text(file.name, size=16, weight=ft.FontWeight.BOLD),
+                                    ft.Text(file_size, size=12, color=ft.Colors.GREY_600)
+                                ], spacing=2, expand=True),
+                                ft.IconButton(
+                                    icon=ft.Icons.DELETE,
+                                    icon_color="red",
+                                    on_click=lambda e, file=file: remove_pdf_from_list(file),
+                                    tooltip="Eliminar archivo"
+                                )
+                                
+                            ]),
+                            padding=10
                         )
-                    ], 
-                    spacing=5
-                    ),
-                    padding=ft.padding.symmetric(horizontal=8, vertical=4),
-                    border=ft.border.all(1, ft.Colors.GREY_300),
-                    border_radius=4,
-                    bgcolor=ft.Colors.GREY_50
+                    )
                 )
-                pdf_list_container.controls.append(file_row)
             
             compress_button.disabled = False
             compress_button.on_click = lambda _: compress_pdfs(selected_pdf_files)
             
-            # Actualizar preview
-            file_info = ft.Column([
-                ft.Icon(ft.Icons.PICTURE_AS_PDF, size=80, color=ft.Colors.RED_400),
-                ft.Text(f"PDFs seleccionados", size=14, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
-                ft.Text(f"{len(selected_pdf_files)} archivo(s)", size=12, text_align=ft.TextAlign.CENTER)
-            ], alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
-            preview_container.content = file_info
-    status_text = ft.Text("", size=14)
+    status_text = ft.Text("", size=14, text_align= "center", weight= "bold")
     
     progress = ft.ProgressRing(
         visible= False,
@@ -155,18 +143,23 @@ def compress_view(page: ft.Page, back_callback=None):
             ft.dropdown.Option(key="normal", text="Normal (Recomendada)"),
             ft.dropdown.Option(key="extrema", text="Extrema (Máxima reducción)")
         ],
+        filled=True,
         width=300,
-        border_radius=20,
-        border_color=blue,
-        text_size=12
+        border_radius=8,
+        border_width=0,
+        border_color="transparent",
+        focused_border_width=0,
+        text_size=16
     )
     
     results_container = ft.Column([], visible=False, spacing=5, scroll=ft.ScrollMode.AUTO)
-    compress_button = ft.ElevatedButton(
+    
+    compress_button = gradient_button(
         text="Comprimir PDFs",
-        bgcolor=blue,
-        color=white,
-        disabled=True
+        width=200,
+        height=40,
+        gradient=main_gradient_color,
+        on_click=lambda _: compress_pdfs(selected_pdf_files)
     )
     
     
@@ -203,7 +196,16 @@ def compress_view(page: ft.Page, back_callback=None):
         for file in files:
             input_path = file.path
             file_name_without_ext = os.path.splitext(file.name)[0]
-            output_path = os.path.join(output_dir, f"{file_name_without_ext}_comprimido.pdf")
+            
+            # Lógica para evitar sobrescritura
+            base_filename = f"{file_name_without_ext} comprimido.pdf"
+            output_path = os.path.join(output_dir, base_filename)
+            
+            cont = 1
+            while os.path.exists(output_path):
+                filename = f"{file_name_without_ext} comprimido ({cont}).pdf"
+                output_path = os.path.join(output_dir, filename)
+                cont += 1
 
             try:
                 reader = PdfReader(input_path)
@@ -256,7 +258,7 @@ def compress_view(page: ft.Page, back_callback=None):
                                         obj['/ColorSpace'] = '/DeviceRGB'
                                         
                                 except Exception as img_error:
-                                    print(f"Error procesando imagen en página {page_num + 1}: {img_error}")
+                                    page.open(show_snackbar(content=f"Error al procesar imagen en página {page_num + 1}: {img_error}", type="error"))
                                     continue
                     
                     writer.add_page(pdf_page)
@@ -291,109 +293,132 @@ def compress_view(page: ft.Page, back_callback=None):
                 failed_count += 1
 
         if compressed_count > 0:
-            status_text.value = (
-                f"¡Compresión completada! Se comprimieron {compressed_count} PDF(s)."
-                f" Los archivos guardados en: {output_dir}"
-            )
-            status_text.color = ft.Colors.GREEN_800
+            page.open(show_snackbar(content=f"¡Compresión completada! \n archivos guardados en {output_dir}", type="success"))
             progress.visible = False
             
             # Mostrar resultados detallados
             results_container.controls.clear()
-            results_container.controls.append(
-                ft.Text("Resultados de compresión:", 
-                        size=14, 
-                        weight=ft.FontWeight.BOLD,
-                        color=dark_grey)
-            )
             
-            for result in compression_results:
+            for i, result in enumerate(compression_results):
                 original_mb = result['original_size'] / (1024*1024)
                 compressed_mb = result['compressed_size'] / (1024*1024)
                 
-                result_row = ft.Container(
-                    content=ft.Column([
-                        ft.Text(result['name'], size=12, weight=ft.FontWeight.BOLD),
-                        ft.Row([
-                            ft.Text(f"Original: {original_mb:.2f} MB", size=10),
-                            ft.Text(f"Comprimido: {compressed_mb:.2f} MB", size=10),
-                            ft.Text(f"Reducción: {result['reduction']:.1f}%", 
-                                   size=10, 
-                                   color=ft.Colors.GREEN_600 if result['reduction'] > 0 else ft.Colors.ORANGE_600)
-                        ], spacing=15)
-                    ], spacing=2),
-                    padding=ft.padding.all(8),
-                    border=ft.border.all(1, ft.Colors.GREY_300),
-                    border_radius=4,
-                    bgcolor=ft.Colors.GREEN_50
-                )
-                results_container.controls.append(result_row)
+                results_container.controls.append(
+                    ft.Card(
+                        content=ft.Container(
+                            content= ft.Row(
+                                controls=[
+                                    ft.Text(f"{i+1}", weight=ft.FontWeight.BOLD, size=16),
+                                    ft.Column(
+                                        controls=[
+                                            ft.Text(result['name'], size=16, weight=ft.FontWeight.BOLD),
+                                            ft.Row([
+                                                ft.Text(f"Original: {original_mb:.2f} MB", size=12, color=ft.Colors.GREY_600),
+                                                ft.Text(f"Comprimido: {compressed_mb:.2f} MB", size=12, color=ft.Colors.GREY_600)
+                                            ])
+                                        ],
+                                        spacing=2,
+                                        expand=True
+                                    ),
+                                    ft.Column(
+                                        controls=[
+                                            ft.Text(
+                                                    f"{result['reduction']:.1f}%",
+                                                    size=14,
+                                                    color=ft.Colors.GREEN,
+                                                    weight=ft.FontWeight.BOLD,
+                                                    text_align=ft.TextAlign.CENTER
+                                            ),
+                                            ft.Text(
+                                                "Reducción",
+                                                size=12,
+                                                color=ft.Colors.GREY_600
+                                            )
+                                        ]
+                                    ),
+                                ]),
+                                padding=10
+                            ),
+                        )
+                    )
             
             results_container.visible = True
             
             # Abrir la carpeta de salida
             open_output_folder_button.visible = True
             open_output_folder_button.on_click = lambda _: page.launch_url(f"file:///{output_dir}")
+            status_text.value = f"¡Compresión completada!"
         else:
-            status_text.value = f"No se pudo comprimir ningún PDF. Errores: {failed_count}"
-            status_text.color = ft.Colors.RED_800
+            page.open(show_snackbar(content=f"No se pudo comprimir ningún PDF. Errores: {failed_count}", type="error"))
             progress.visible = False
             open_output_folder_button.visible = False
             results_container.visible = False
         
         page.update()
     
-    pick_files_button = ft.ElevatedButton(
-        text="Seleccionar PDFs",
-        bgcolor=blue,
-        color=white,
-        icon=ft.Icons.UPLOAD_FILE,
-        on_click=lambda e: file_picker.pick_files(
+    pick_files_button = action_button(
+        text= "Seleccionar PDF",
+        icon=ft.Icons.FOLDER_OPEN,
+        on_click=lambda _: file_picker.pick_files(
             allow_multiple=True,
             allowed_extensions=["pdf"]
         )
     )
     
+    # Mostrar mensaje inicial
+    update_pdf_list()
+    
+    first_step = ft.Row(
+        controls= [
+            pick_files_button,
+            compression_level,
+            compress_button
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        spacing=20
+    )
+    
+    container_lists = ft.Row(
+        controls=[
+                ft.Container(
+                    content=pdf_list,
+                    padding=10,
+                    expand=True
+                ),
+                ft.VerticalDivider(),
+                ft.Container(
+                    content=results_container,
+                    expand=True
+                ),
+        ],
+        width=1000,
+        spacing=10,
+    )
+    
     return ft.Column(
         controls=[
             app_bar,
-            ft.Container(
-                content=ft.Column([
-                    ft.Text("Comprimir Documentos PDF", size=24, weight=ft.FontWeight.BOLD),
-                    ft.Divider(),
-                    pick_files_button,
-                    ft.Row([
-                        ft.Column([
-                            ft.Text("Archivos seleccionados:", size=16, weight=ft.FontWeight.BOLD),
-                            ft.Container(
-                                content=ft.Column([
-                                    pdf_list_container
-                                ], scroll=ft.ScrollMode.AUTO),
-                                height=200,
-                                border=ft.border.all(1, ft.Colors.GREY_300),
-                                border_radius=8,
-                                padding=10
-                            ),
-                            compression_level,
-                            compress_button,
-                            ft.Row([
-                                status_text,
-                                progress
-                            ], spacing=10),
-                            ft.Container(
-                                content=results_container,
-                                height=150
-                            ),
-                            open_output_folder_button
-                        ], expand=True),
-                        preview_container
-                    ], spacing=20)
-                ], 
-                spacing=20, 
-                scroll=ft.ScrollMode.AUTO),
-                padding=20,
-                expand=True
-            )
+            ft.Column([
+                info,
+                ft.Divider(),
+                first_step,
+                ft.Row([
+                        status_text,
+                        progress
+                    ], 
+                    spacing=10,
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    width=1000
+                ),
+                container_lists  
+            ], 
+            spacing=20,
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            ft.Container(height=50)
         ],
+        scroll=ft.ScrollMode.AUTO,
         expand=True
     )

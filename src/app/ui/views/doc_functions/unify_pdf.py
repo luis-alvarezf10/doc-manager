@@ -22,7 +22,7 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
     
     info = ft.Column(
         controls=[
-            ft.Text("Selecciona archivos PDF para unificar", size=20, weight=ft.FontWeight.BOLD),
+            ft.Text("Selecciona archivos PDF para unificar", size=25, text_align=ft.TextAlign.CENTER, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),
             info_text(text="1. Click al boton Seleccionar PDF"),
             info_text(text="2. Selecciona los archivos PDF que deseas unir"),
             info_text(text="3. Click en el boton Unir PDFs"),
@@ -69,6 +69,7 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
                     ft.Card(
                         content=ft.Container(
                             content=ft.Row([
+                                ft.Text(f"{i+1}", weight=ft.FontWeight.BOLD, size=16),
                                 ft.Icon(ft.Icons.PICTURE_AS_PDF, color="red"),
                                 ft.Text(file.name, expand=True, size=16),
                                 ft.IconButton(
@@ -84,7 +85,8 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
                                 ft.IconButton(
                                     icon=ft.Icons.DELETE,
                                     on_click=lambda e, idx=i: remove_file(idx),
-                                    icon_color="red"
+                                    icon_color="red",
+                                    tooltip="Eliminar archivo"
                                 )
                             ]),
                             padding=10
@@ -123,22 +125,35 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
             for file in selected_pdf_files:
                 merger.append(file.path)
             
-            # Obtener nombre personalizado o usar por defecto
-            pdf_name = name_pdf.value.strip() if name_pdf.value.strip() else "PDF_Unificado"
-            if not pdf_name.endswith(".pdf"):
-                pdf_name += ".pdf"
-            
-            # Crear carpeta PDFs_unificados en PLAF_system
             desktop_path = os.path.join(os.path.expanduser("~"), "Documents")
             manager_path = os.path.join(desktop_path, "Axiology Document Manager")
             output_dir = os.path.join(manager_path, "PDFs Unificados")
             os.makedirs(output_dir, exist_ok=True)
+
+            # Lógica de nombres para evitar sobrescritura
+            if name_pdf.value.strip():
+                base_name = name_pdf.value.strip().upper()
+                filename = f"{base_name}.pdf"
+            else:
+                base_name = "PDF UNIFICADO"
+                filename = f"{base_name}.pdf"
             
-            output_path = os.path.join(output_dir, pdf_name)
+            # Evitar sobrescritura
+            cont = 1
+            while os.path.exists(os.path.join(output_dir, filename)):
+                if name_pdf.value.strip():
+                    filename = f"{base_name} ({cont}).pdf"
+                else:
+                    filename = f"{base_name} ({cont}).pdf"
+                cont += 1
+
+            # Guardar PDF
+            output_path = os.path.join(output_dir, filename)
             with open(output_path, 'wb') as output_file:
                 merger.write(output_file)
             merger.close()
-            
+
+            # Guardar ruta final
             nonlocal output_folder_path
             output_folder_path = output_dir
             page.open(show_snackbar(content=f"PDF unificado guardado en: {output_path}", type="success"))
@@ -148,7 +163,7 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
             progress.visible = False
             merge_button.disabled = False
             page.update()
-    
+    status_text = ft.Text("", size=14, text_align= "center", weight= "bold")
     selected_pdf_files = []
     output_folder_path = None
     
@@ -183,14 +198,6 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
             text_size=16,
     )
     
-    first_step = ft.Row(
-        controls= [
-            pick_files_button,
-            name_pdf
-        ],
-        alignment=ft.MainAxisAlignment.CENTER,
-        spacing=20
-    )
     
     merge_button = gradient_button(
         text="Unir PDFs",
@@ -198,6 +205,16 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
         height=40,
         gradient=main_gradient_color,
         on_click=merge_pdfs,
+    )
+    
+    first_step = ft.Row(
+        controls= [
+            pick_files_button,
+            name_pdf,
+            merge_button,
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        spacing=20
     )
     
     # Mostrar mensaje inicial después de definir merge_button
@@ -209,22 +226,26 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
                 info,
                 ft.Divider(),
                 first_step,
+                ft.Row([
+                        status_text,
+                        progress
+                    ], 
+                    spacing=10,
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    width=1000
+                ),
                 ft.Container(
                     content=pdf_list,
-                    padding=10
+                    padding=10,
+                    width=1000
                 ),
-                ft.Divider(),
-                ft.Row([
-                    merge_button,
-                    progress
-                ], 
-                alignment=ft.MainAxisAlignment.CENTER,
-                )
             ], 
             spacing=20,
             alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,   
             ),
+            ft.Container(height=30)
         ],
         scroll=ft.ScrollMode.AUTO,
         expand=True
