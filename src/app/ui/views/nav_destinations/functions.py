@@ -59,6 +59,11 @@ def functions_page(page: ft.Page, change_content_callback=None):
                 color=grey,
             ),
             *[gradient_button(text=label,gradient=main_gradient_color, on_click=make_handler(view)) for label, view in actions],
+            ft.Text(
+                "O puedes abrir la herramienta de IA de Google Gemini AI",
+                size=16,
+                color=grey,
+            ),
             ft.OutlinedButton(
                 content= gradient_text(text="Abrir Gemini AI", gradient=main_gradient_color, size=20),
                 on_click= open_gemini,
