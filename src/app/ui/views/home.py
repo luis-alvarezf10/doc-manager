@@ -4,7 +4,7 @@ import flet as ft
 from src.app.ui.views.nav_destinations.functions import functions_page
 from src.app.ui.views.nav_destinations.folder_view import folder_view
 from src.app.ui.views.nav_destinations.bcv_view import create_bcv_view
-from src.app.ui.views.nav_destinations.reports_view import create_reports_view
+from src.app.ui.views.nav_destinations.reports import create_report_view
 from src.utils.colors import grey
 
 class HomeView(ft.View):
@@ -34,7 +34,7 @@ class HomeView(ft.View):
             0: lambda: self.get_or_create("functions_view", lambda: functions_page(self.page, self.change_content)),
             1: lambda: self.create_folder_view(),
             2: lambda: self.get_or_create("bcv_view", lambda: create_bcv_view(self.page)),
-            3: lambda: self.get_or_create("reports_view", lambda: create_reports_view(self.page)),
+            3: lambda: self.get_or_create("reports_view", lambda: create_report_view(self.page)),
             # 2: lambda: self.get_or_create("lan_chat_view", self.init_chat_view),
         }
 

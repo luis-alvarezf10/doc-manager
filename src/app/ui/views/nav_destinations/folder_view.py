@@ -32,7 +32,7 @@ def folder_view(page: ft.Page, chat_instance=None):
             os.makedirs(axiology_path, exist_ok=True)
             return True
         except Exception as ex:
-            update_status(f"Error al crear PLAF_system: {ex}", "red")
+            update_status(f"Error al crear Axiology Document Manager: {ex}", "red")
             return False
 
     def navigate_to(folder=None):
