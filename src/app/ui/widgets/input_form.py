@@ -23,12 +23,12 @@ def create_input(titulo: None, label, lista):
     label_lower = label.lower()
 
     # Dropdowns
-    if label_lower in ["sexo", "nacionalidad", "estado civil", "razón", "trimestre referido", "cargo"]:
+    if label_lower in ["sexo", "nacionalidad", "estado civil", "tipo de inmueble", "trimestre referido", "cargo"]:
         options_dict = {
             "sexo": ["Masculino", "Femenino"],
             "nacionalidad": ["Venezolano", "Portugués", "Italiano", "Árabe", "Libanés", "Chino", "Turco", "Español", "Alemán", "Francés"],
             "estado civil": ["Soltero/a", "Casado/a", "Divorciado/a", "Viudo/a"],
-            "Tipo de Inmueble": ["Edificio", "Casa", "Apartamento", "Terreno", "Local Comercial"],
+            "tipo de inmueble": ["Edificio", "Casa", "Apartamento", "Terreno", "Local Comercial"],
             "trimestre referido": ["Primer", "Segundo", "Tercer", "Cuarto"],
             "cargo": ["Presidente", "Vicepresidente", "Secretario","Tesorero", "Miembro", "Suplente", "Director General", "Director Administrativo","Director Ejecutivo", "Gerente General", "Gerente Administrativo", "Gerente de Finanzas", "Gerente de Operaciones", "Asesor Legal", "Asesor Financiero", "Comisario", "Auditor Interno", "Vocal","Representante Legal", "Socio Fundador", "Consejero", "Otro (Especificar en el documento)"
         ]

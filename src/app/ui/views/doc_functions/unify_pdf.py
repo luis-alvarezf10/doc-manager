@@ -132,7 +132,7 @@ def pdf_convert_view(page: ft.Page, back_callback=None):
 
             # Lógica de nombres para evitar sobrescritura
             if name_pdf.value.strip():
-                base_name = name_pdf.value.strip().upper()
+                base_name = name_pdf.value.strip()
                 filename = f"{base_name}.pdf"
             else:
                 base_name = "PDF UNIFICADO"

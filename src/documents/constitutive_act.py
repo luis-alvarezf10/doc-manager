@@ -262,12 +262,7 @@ def generate_constitutive_act(accionistas: list, presentante: dict, empresa: dic
             if i < len(accionistas) - 1:
                 doc.add_paragraph("\n")
         
-        
-        
-        
-        
-        
-        
+
         
         
         documents_path = os.path.join(os.path.expanduser("~"), "Documents")
@@ -286,7 +281,7 @@ def generate_constitutive_act(accionistas: list, presentante: dict, empresa: dic
                 filename = f"{base} ({cont}).docx"
                 cont += 1
         else:
-            filename = f"{input_filename.upper()}.docx"
+            filename = f"{input_filename}.docx"
         
         
         full_path = os.path.join(sales_path, filename)

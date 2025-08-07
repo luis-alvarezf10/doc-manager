@@ -151,7 +151,7 @@ def generate_buy_and_sell_doc(vendedor_data, comprador_data, inmueble_data, ofic
         if input_filename == "":
             filename =  f"CONTRATO DE COMPRAVENTA DE PROPIEDAD {vendedor_data['Nombre'].upper()} Y {comprador_data['Nombre'].upper()}.docx"
         else:
-            filename = f"{input_filename.upper()}.docx"
+            filename = f"{input_filename}.docx"
             
         full_path = os.path.join(sales_path, filename)
         doc.save(full_path)
