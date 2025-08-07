@@ -4,7 +4,7 @@ def show_snackbar(*, content:str, type: str = "success") -> ft.SnackBar:
     color_map = {
         "success": ft.Colors.GREEN,
         "error": ft.Colors.RED,
-        "warning": ft.Colors.YELLOW,
+        "warning": ft.Colors.ORANGE,
         "info": ft.Colors.BLUE,
     }
     emoji = {

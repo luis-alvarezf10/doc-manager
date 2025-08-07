@@ -133,12 +133,21 @@ def folder_view(page: ft.Page, chat_instance=None):
                 page.open(show_snackbar(content=f"Error al eliminar: {ex}", type="error"))
         
         confirm_dialog = ft.AlertDialog(
-            title=ft.Text("Confirmar eliminación"),
-            content=ft.Text(f"¿Estás seguro de eliminar {len(selected_files)} archivos?"),
+            title=ft.Row([
+                ft.Text("Confirmar eliminación", weight="bold"),
+                ft.IconButton(ft.Icons.CLOSE, icon_color="grey", on_click=lambda _: page.close(confirm_dialog))
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+            ),
+            content=ft.Container(
+                ft.Text(f"¿Estás seguro de eliminar {len(selected_files)} archivos?", size=16),
+                width=400
+            ),
             actions=[
-                ft.TextButton("Cancelar", on_click=lambda _: page.close(confirm_dialog)),
-                ft.ElevatedButton("Eliminar", bgcolor="red", color="white", on_click=confirm_delete)
-            ]
+                action_button(text="Eliminar",icon=ft.Icons.DELETE, bgcolor="red", on_click=confirm_delete, width=150)
+            ],
+            shape=ft.RoundedRectangleBorder(radius=10),
+            elevation=10
         )
         page.open(confirm_dialog)
     
@@ -340,12 +349,34 @@ def folder_view(page: ft.Page, chat_instance=None):
             
             def delete_file():
                 close_menu()
-                try:
-                    os.remove(path)
-                    page.open(show_snackbar(content=f"Archivo {name} eliminado", type="success"))
-                    scan_folders()
-                except Exception as ex:
-                    page.open(show_snackbar(content=f"Error al eliminar: {ex}", type="error"))
+                
+                def confirm_delete_single(e):
+                    try:
+                        os.remove(path)
+                        page.open(show_snackbar(content=f"Archivo {name} eliminado", type="success"))
+                        scan_folders()
+                        page.close(confirm_dialog)
+                    except Exception as ex:
+                        page.open(show_snackbar(content=f"Error al eliminar: {ex}", type="error"))
+                
+                confirm_dialog = ft.AlertDialog(
+                    title=ft.Row([
+                        ft.Text("Confirmar eliminación", weight="bold"),
+                        ft.IconButton(ft.Icons.CLOSE, icon_color="grey", on_click=lambda _: page.close(confirm_dialog))
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                    ),
+                    content=ft.Container(
+                        ft.Text(f"¿Estás seguro de eliminar el archivo '{name}'?", size=16),
+                        width=400
+                    ),
+                    actions=[
+                        action_button(text="Eliminar", icon=ft.Icons.DELETE, bgcolor="red", on_click=confirm_delete_single, width=150)
+                    ],
+                    shape=ft.RoundedRectangleBorder(radius=10),
+                    elevation=10
+                )
+                page.open(confirm_dialog)
             
             context_menu = ft.AlertDialog(
                 title= ft.Row([
