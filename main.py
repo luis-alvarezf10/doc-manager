@@ -7,6 +7,8 @@ def main(page: ft.Page):
     page.window_full_screen = True
     page.theme_mode = ft.ThemeMode.SYSTEM
     
+    page.window_icon = "assets/axiology.ico"
+    
     def route_change(route):
         page.views.clear()
         if page.route == "/home":
