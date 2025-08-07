@@ -1,6 +1,9 @@
 import flet as ft
 import threading
 from datetime import datetime
+from src.app.ui.widgets.gradient_button import gradient_button
+from src.app.ui.widgets.info_selected_mode import info_text
+from src.utils.colors import main_gradient_color
 
 try:
     import requests
@@ -20,11 +23,20 @@ except ImportError:
 
 def create_bcv_view(page):
     # Variables de estado
-    usd_rate = ft.Text("--", size=32, weight=ft.FontWeight.BOLD, color="green")
-    eur_rate = ft.Text("--", size=32, weight=ft.FontWeight.BOLD, color="blue")
+    usd_rate = ft.Text("--", size=40, weight=ft.FontWeight.BOLD, color="green")
+    eur_rate = ft.Text("--", size=40, weight=ft.FontWeight.BOLD, color="blue")
     last_update = ft.Text("Sin actualizar", size=12, color="grey")
     status_text = ft.Text("Presiona 'Actualizar' para obtener tasas", size=14)
-    
+    info = ft.Column(
+        controls=[
+            ft.Text("Conversion de Tasa Monetaria (BCV)", size=25, text_align=ft.TextAlign.CENTER, style=ft.TextThemeStyle.HEADLINE_MEDIUM, weight="bold"),
+            info_text(text="- Tasas obtenidas de la página oficial de Banco central de Venezuela (BCV)"),
+            info_text(text="- Si el valor no cambia, es posible que la página web no esté disponible o haya habido un error al obtener las tasas."),
+
+
+        ],
+        width=800
+    )
     def scrape_bcv_rates():
         """Extraer tasas del BCV usando el método simple"""
         if not SCRAPING_AVAILABLE:
@@ -108,7 +120,8 @@ def create_bcv_view(page):
         status_text.value = "🔄 Obteniendo tasas del BCV..."
         status_text.color = "blue"
         # Deshabilitar botón durante actualización
-        e.control.disabled = True if e else None
+        if e and hasattr(e, 'control'):
+            e.control.disabled = True
         page.update()
         
         def fetch_rates():
@@ -139,15 +152,18 @@ def create_bcv_view(page):
                 status_text.color = "green"
                 
                 # Actualizar calculadora automáticamente
-                calculate_all()
-                
             except Exception as ex:
                 status_text.value = f"❌ Error: {str(ex)}"
                 status_text.color = "red"
             
-            # Rehabilitar botón
+            # Rehabilitar botón y actualizar bs_input con tasa real
             if e and hasattr(e, 'control'):
                 e.control.disabled = False
+            
+            # Actualizar bs_input con equivalente a 1 USD
+            if 'USD' in rates:
+                bs_input.value = f"{rates['USD']:.2f}"
+            
             page.update()
         
         threading.Thread(target=fetch_rates, daemon=True).start()
@@ -155,9 +171,44 @@ def create_bcv_view(page):
 
     
     # Calculadora integrada
+    countries = [
+        {"key": "US", "flag": "https://flagcdn.com/h20/us.png", "name": "Estados Unidos", "suffix": "$"},
+        {"key": "EU", "flag": "https://flagcdn.com/h20/eu.png", "name": "Europa", "suffix": "€"}
+    ]
+    
+    selected_flag = ft.Image(src=countries[0]["flag"], width=32, height=24, fit=ft.ImageFit.COVER)
+    amount_input = ft.TextField(label="", width=150, text_align=ft.TextAlign.CENTER, keyboard_type=ft.KeyboardType.NUMBER, suffix_text="$", value="1",         border_radius=8,
+        border_width=0,
+        border_color="transparent",
+        filled=True,)
     usd_input = ft.TextField(label="USD", width=100, value="1", text_align=ft.TextAlign.CENTER, keyboard_type=ft.KeyboardType.NUMBER)
     eur_input = ft.TextField(label="EUR", width=100, value="1", text_align=ft.TextAlign.CENTER, keyboard_type=ft.KeyboardType.NUMBER)
-    bs_input = ft.TextField(label="Bolívares", width=120, value="100", text_align=ft.TextAlign.CENTER, keyboard_type=ft.KeyboardType.NUMBER)
+    bs_input = ft.TextField(label="", width=150, value="36.50", text_align=ft.TextAlign.CENTER, keyboard_type=ft.KeyboardType.NUMBER, suffix_text="Bs",         border_radius=8,
+        border_width=0,
+        border_color="transparent",
+        filled=True,)
+    
+    currency_selected = ft.Dropdown(
+        options=[
+            ft.dropdown.Option(
+                key=country["key"],
+                content=ft.Row([
+                    ft.Image(src=country["flag"], width=24, height=16, fit=ft.ImageFit.COVER),
+                    ft.Text(country["name"], size=14)
+                ], spacing=8, tight=True)
+            ) for country in countries
+        ],
+        value=countries[0]["key"],
+        width=100,
+        text_size=16,
+        border_radius=8,
+        border_width=0,
+        border_color="transparent",
+        filled=True,
+    )
+    
+    
+    
     
     usd_result = ft.Text("0.00 Bs", size=14, weight=ft.FontWeight.BOLD, color="green")
     eur_result = ft.Text("0.00 Bs", size=14, weight=ft.FontWeight.BOLD, color="blue")
@@ -183,12 +234,12 @@ def create_bcv_view(page):
         except ValueError:
             pass
     
-    def calculate_from_bs(e=None):
+    def calculate_bidirectional(e=None):
         try:
             usd_val = float(usd_rate.value) if usd_rate.value != "--" else 36.50
             eur_val = float(eur_rate.value) if eur_rate.value != "--" else 40.15
             
-            # Calcular Bs a USD y EUR
+            # Calcular Bs a USD y EUR para la calculadora bidireccional
             bs_amount = float(bs_input.value) if bs_input.value else 0
             usd_from_bs_val = bs_amount / usd_val
             eur_from_bs_val = bs_amount / eur_val
@@ -200,148 +251,146 @@ def create_bcv_view(page):
         except ValueError:
             pass
     
+    def calculate_from_bs(e=None):
+        try:
+            bs_amount = float(bs_input.value) if bs_input.value else 0
+            selected_country = currency_selected.value
+            
+            # Actualizar bandera y suffix
+            country_data = next((c for c in countries if c["key"] == selected_country), countries[0])
+            selected_flag.src = country_data["flag"]
+            amount_input.suffix_text = country_data["suffix"]
+            
+            if selected_country == "US":
+                usd_val = float(usd_rate.value) if usd_rate.value != "--" else 36.50
+                amount_result = bs_amount / usd_val
+                amount_input.value = f"{amount_result:.2f}"
+            elif selected_country == "EU":
+                eur_val = float(eur_rate.value) if eur_rate.value != "--" else 40.15
+                amount_result = bs_amount / eur_val
+                amount_input.value = f"{amount_result:.2f}"
+            
+            page.update()
+        except ValueError:
+            pass
+    
+    def calculate_from_amount(e=None):
+        try:
+            amount = float(amount_input.value) if amount_input.value else 0
+            selected_country = currency_selected.value
+            
+            if selected_country == "US":
+                usd_val = float(usd_rate.value) if usd_rate.value != "--" else 36.50
+                bs_result = amount * usd_val
+                bs_input.value = f"{bs_result:.2f}"
+            elif selected_country == "EU":
+                eur_val = float(eur_rate.value) if eur_rate.value != "--" else 40.15
+                bs_result = amount * eur_val
+                bs_input.value = f"{bs_result:.2f}"
+            
+            page.update()
+        except ValueError:
+            pass
+    
     def calculate_all(e=None):
         calculate_to_bs()
-        calculate_from_bs()
+        calculate_bidirectional()
     
+    # Conectar eventos
+    bs_input.on_change = calculate_from_bs
+    amount_input.on_change = calculate_from_amount
+    currency_selected.on_change = calculate_from_bs
     usd_input.on_change = calculate_to_bs
     eur_input.on_change = calculate_to_bs
-    bs_input.on_change = calculate_from_bs
     
 
     
-    # Cálculo inicial
-    calculate_all()
+    # Agregar eventos de Enter
+    amount_input.on_submit = calculate_from_amount
+    bs_input.on_submit = calculate_from_bs
+    
+    # Carga automática de tasas
+    update_rates()
     
     return ft.Column([
-        ft.Text("🏦 Tasas BCV - Banco Central de Venezuela", size=24, weight=ft.FontWeight.BOLD),
+        ft.Container(height=20),
+        info,
         ft.Divider(),
-        
-        # Layout principal con tasas y calculadora
+        ft.Container(height=20),
         ft.Row([
-            # Columna izquierda - Tasas
-            ft.Column([
-                ft.Text("💱 Tasas Oficiales", size=18, weight=ft.FontWeight.BOLD),
-                ft.Row([
-                    ft.Card(
-                        content=ft.Container(
-                            content=ft.Column([
-                                ft.Text("🇺🇸 Dólar USD", size=16, weight=ft.FontWeight.BOLD),
-                                usd_rate,
-                                ft.Text("Bolívares", size=10, color="grey")
-                            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                            padding=15,
-                            bgcolor="#e8f5e8",
-                            border_radius=10
-                        ),
-                        width=150
+            ft.Card(
+                content=ft.Container(
+                    content=ft.Column([
+                            ft.Text("Dólar $", size=25, weight=ft.FontWeight.BOLD),
+                            usd_rate,
+                            ft.Text("Bolívares", size=15, color="grey")
+                        ],
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        alignment=ft.MainAxisAlignment.CENTER
                     ),
-                    ft.Card(
-                        content=ft.Container(
-                            content=ft.Column([
-                                ft.Text("🇪🇺 Euro EUR", size=16, weight=ft.FontWeight.BOLD),
-                                eur_rate,
-                                ft.Text("Bolívares", size=10, color="grey")
-                            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                            padding=15,
-                            bgcolor="#e3f2fd",
-                            border_radius=10
-                        ),
-                        width=150
-                    )
-                ], spacing=10)
-            ], expand=1),
-            
-            ft.VerticalDivider(width=1),
-            
-            # Columna derecha - Calculadora
-            ft.Column([
-                ft.Text("🧮 Calculadora Bidireccional", size=18, weight=ft.FontWeight.BOLD),
-                
-                # Conversión a Bolívares
-                ft.Card(
-                    content=ft.Container(
-                        content=ft.Column([
-                            ft.Text("💱 → Bolívares", size=14, weight=ft.FontWeight.BOLD, color="#2e7d32"),
-                            ft.Row([
-                                usd_input,
-                                ft.Text("=", size=16),
-                                usd_result
-                            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                            ft.Row([
-                                eur_input,
-                                ft.Text("=", size=16),
-                                eur_result
-                            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
-                        ]),
-                        padding=15,
-                        bgcolor="#e8f5e8",
-                        border_radius=10
-                    )
                 ),
-                
-                # Conversión desde Bolívares
-                ft.Card(
-                    content=ft.Container(
-                        content=ft.Column([
-                            ft.Text("Bolívares → 💱", size=14, weight=ft.FontWeight.BOLD, color="#1565c0"),
-                            ft.Row([
-                                bs_input
-                            ], alignment=ft.MainAxisAlignment.CENTER),
-                            ft.Divider(height=5),
-                            ft.Row([
-                                usd_from_bs,
-                                ft.Text("|", size=16, color="grey"),
-                                eur_from_bs
-                            ], alignment=ft.MainAxisAlignment.SPACE_AROUND)
-                        ]),
-                        padding=15,
-                        bgcolor="#e3f2fd",
-                        border_radius=10
-                    )
-                )
-            ], expand=1)
-        ], spacing=20),
-        
-        # Botón de actualización
-        ft.Container(
-            content=ft.ElevatedButton(
-                "🔄 Actualizar Tasas",
-                on_click=lambda e: [update_rates(e), calculate_all()],
-                bgcolor="green",
-                color="white",
-                icon=ft.Icons.REFRESH
+                elevation=8,
+                width=200,
+                height=200
             ),
-            alignment=ft.alignment.center
+            ft.Card(
+                content=ft.Container(
+                    content=ft.Column([
+                            ft.Text("Euro €", size=25, weight=ft.FontWeight.BOLD),
+                            eur_rate,
+                            ft.Text("Bolívares", size=15, color="grey")
+                        ],
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        alignment=ft.MainAxisAlignment.CENTER
+                    ),
+                ),
+                elevation=8,
+                width=200,
+                height=200
+            )      
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=10
         ),
-        
-        # Estado y última actualización
-        ft.Container(
-            content=ft.Column([
-                status_text,
-                last_update
-            ]),
-            padding=15,
-            bgcolor="#f0f8ff",
-            border_radius=10,
-            margin=ft.margin.only(top=20)
+        gradient_button(
+            text = "Actualizar Tasas", 
+            gradient=main_gradient_color,
+            on_click= lambda e: (update_rates(e), calculate_all())
         ),
-        
-        # Información adicional
-        ft.Container(
-            content=ft.Column([
-                ft.Text("ℹ️ Información", weight=ft.FontWeight.BOLD),
-                ft.Text("• Las tasas se obtienen del sitio oficial del BCV"),
-                ft.Text("• Si el BCV no está disponible, se usa API alternativa"),
-                ft.Text("• Los datos son referenciales"),
-                ft.Text("• Actualización manual requerida")
-            ]),
-            padding=15,
-            bgcolor="#fff8dc",
-            border_radius=10,
-            margin=ft.margin.only(top=10),
-        )
+        ft.Card(
+            content= ft.Container(
+                content=ft.Row([
+                    ft.Row([
+                        ft.Column([
+                            ft.Text("Moneda:", size=14, weight=ft.FontWeight.BOLD),
+                            currency_selected
+                        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                        ft.Column([
+                            ft.Text("Cantidad:", size=14, weight=ft.FontWeight.BOLD),
+                            ft.Row([
+                                selected_flag,
+                                amount_input
+                            ], spacing=10, alignment=ft.MainAxisAlignment.CENTER)
+                        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                    ]),
+                    ft.Icon(ft.Icons.ARROW_CIRCLE_RIGHT, size=50, color="blue"),
+                    ft.Column([
+                        ft.Text("Bolívares:", size=14, weight=ft.FontWeight.BOLD),
+                        ft.Row([
+                            ft.Image(src="https://flagcdn.com/h20/ve.png", width=32, height=24, fit=ft.ImageFit.COVER),
+                            bs_input
+                        ]),
+                    ], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+                ], alignment=ft.MainAxisAlignment.SPACE_AROUND),
+                width=800,
+                padding=20,
+                border_radius=10
+            ),
+            elevation=8,
+        ),
     ], 
+    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+    alignment=ft.MainAxisAlignment.CENTER,
     spacing=15,
     scroll=ft.ScrollMode.AUTO,
     expand=True
